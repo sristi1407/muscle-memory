@@ -1,0 +1,14 @@
+# Target app (MockCore legacy bank surface)
+flask>=3.0
+
+# Computer-use surface
+playwright>=1.44          # after install: `python -m playwright install chromium`
+
+# Typed artifact + result contracts
+pydantic>=2.7
+
+# LLM (discovery loop). Optional at runtime: a mock boundary lets you run without a key.
+anthropic>=0.34
+
+# Config
+python-dotenv>=1.0

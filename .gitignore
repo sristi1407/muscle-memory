@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# Secrets / config — never commit
+.env
+.env.*
+!.env.example
+
+# Local run outputs (kept out of the repo except curated /evidence samples)
+evidence/_runs/
+*.log
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
