@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "interface-cua"
+name = "muscle-memory"
 version = "0.1.0"
 description = "Muscle Memory — discover once, replay free: deterministic capabilities for legacy UIs."
 requires-python = ">=3.10"

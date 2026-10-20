@@ -55,6 +55,15 @@ class PlaywrightWebSurface(Surface):
     def navigate(self, url: str) -> None:
         self.page.goto(url, wait_until="domcontentloaded")
 
+    def current_url(self) -> str:
+        return self.page.url
+
+    def settle(self) -> None:
+        try:
+            self.page.wait_for_load_state("domcontentloaded", timeout=5000)
+        except Exception:
+            pass
+
     def observe(self) -> Perception:
         return Perception(url=self.page.url, tree=self._ax_text(), title=self.page.title())
 
@@ -137,22 +146,34 @@ class PlaywrightWebSurface(Surface):
         value, strategies = self.read_labeled_value(description)
         return ActResult(strategies=strategies, value=value)
 
-    def read_labeled_value(self, label: str):
-        """Read a value shown *next to* a label cell (the legacy table pattern).
+    def read_labeled_value(self, target_text: str):
+        """Read a value shown next to a label cell, and ALWAYS anchor on the label.
 
-        e.g. <td>Savings</td><td>$4,210.55</td>  -> returns "$4,210.55".
-        Falls back to the element's own text if there's no sibling cell.
+        Legacy table pattern:  <td>Savings</td><td>$4,210.55</td>
+          * If target_text is the LABEL ("Savings")   -> value = following sibling, anchor on label.
+          * If target_text is the VALUE ("$4,210.55") -> value = itself, anchor on the PRECEDING label.
+        Either way the returned strategy targets the stable label, so replay works for any member.
         """
         page = self.page
-        cell = page.locator("td", has_text=re.compile(rf"^\s*{re.escape(label)}\s*$"))
         try:
-            if cell.count() >= 1:
-                sib = cell.first.locator("xpath=following-sibling::td[1]")
-                if sib.count() >= 1:
-                    return sib.first.inner_text().strip(), [TextStrategy(text=label, exact=True)]
+            cells = page.locator("td", has_text=re.compile(rf"^\s*{re.escape(target_text)}\s*$"))
+            if cells.count() >= 1:
+                first = cells.first
+                # Case 1: target is a LABEL -> value is the following sibling cell.
+                nxt = first.locator("xpath=following-sibling::td[1]")
+                if nxt.count() >= 1:
+                    val = nxt.first.inner_text().strip()
+                    if val:
+                        return val, [TextStrategy(text=target_text, exact=True)]
+                # Case 2: target is the VALUE -> anchor on the preceding-sibling label.
+                prev = first.locator("xpath=preceding-sibling::td[1]")
+                if prev.count() >= 1:
+                    label = prev.first.inner_text().strip()
+                    if label:
+                        return first.inner_text().strip(), [TextStrategy(text=label, exact=True)]
         except Exception:
             pass
-        loc, strategies = self._strategies_for(label)
+        loc, strategies = self._strategies_for(target_text)
         return loc.inner_text().strip(), strategies
 
     # ---- replay-time ----

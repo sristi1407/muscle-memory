@@ -84,6 +84,13 @@ class Surface(ABC):
     @abstractmethod
     def screenshot(self, path: str) -> None: ...
 
+    @abstractmethod
+    def current_url(self) -> str: ...
+
+    def settle(self) -> None:
+        """Wait for the page to be ready after an action. No-op by default."""
+        return None
+
     # ---- context manager sugar ----
     def __enter__(self):
         self.start()
