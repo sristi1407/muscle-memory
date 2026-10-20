@@ -1,69 +1,86 @@
-"""Smoke test: hand-build the target Capability + a ReplayResult and print them.
+"""Smoke test: hand-build the target Capability (cua.v1) + a ReplayResult and print them.
 
-This validates the schema and shows the *exact* artifact shape the compiler will
-produce later. Run after `pip install -e .`:
+Validates the full schema — discriminated unions, parameterization, error rules —
+and shows the exact artifact the compiler will produce. Run after `pip install -e .`:
 
     python scripts/schema_smoke.py
 """
 from cua.schema import (
-    Capability, Metadata, Surface, Contract, IOField,
-    Step, Target, Locator, LocatorKind, CapabilityPolicy, Provenance,
-    ActionType, ReplayResult, Outcome,
+    CapabilityArtifact, Metadata, Surface, Contract, ParamSpec, OutputSpec,
+    Step, Target, Expect, RoleStrategy, PlaceholderStrategy, TextStrategy,
+    ParamValue, TextPresent, ErrorRule, ErrorClass, Policy, Provenance, ActionType,
+    ReplayResult, Status, BusinessOutcome,
 )
 
-cap = Capability(
-    metadata=Metadata(id="member.lookup_savings", app="MidStates Core", surface=Surface.WEB_LEGACY),
-    goal="Look up a member by ID and read their savings balance.",
+cap = CapabilityArtifact(
+    id="member.lookup_savings",
+    name="Look up member savings balance",
+    description="Open member lookup, search by ID, and read the savings balance from the detail screen.",
+    metadata=Metadata(app="MidStates Core", surface=Surface.WEB_LEGACY, author="Sristi Prasad"),
     contract=Contract(
-        inputs=[IOField(name="member_id", description="Member ID to look up")],
-        outputs=[IOField(name="savings_balance", description="Savings balance on the detail screen")],
-        success_condition="Member detail screen shows a savings balance.",
+        inputs=[ParamSpec(name="member_id", description="Member ID to look up", example="1XXXX")],
+        outputs=[OutputSpec(name="savings_balance", description="Savings balance on the detail screen")],
+        success=TextPresent(text="Savings", description="Detail screen shows the balances table"),
     ),
     steps=[
-        Step(index=0, action=ActionType.NAVIGATE, url="http://127.0.0.1:5001/members"),
+        Step(id="open_lookup", index=0, action=ActionType.NAVIGATE, url="http://127.0.0.1:5001/members"),
         Step(
-            index=1, action=ActionType.TYPE, text_template="{member_id}",
+            id="type_member_id", index=1, action=ActionType.TYPE,
             target=Target(
-                description="Member ID",
-                locators=[
-                    Locator(kind=LocatorKind.PLACEHOLDER, value="Member ID"),
-                    Locator(kind=LocatorKind.ROLE, role="textbox", value="Member ID"),
+                description="Member ID search box",
+                strategies=[
+                    RoleStrategy(role="textbox", name="Member ID"),
+                    PlaceholderStrategy(placeholder="Member ID"),
                 ],
+                expect=Expect(role="textbox", editable=True),
             ),
+            value=ParamValue(param="member_id"),
         ),
         Step(
-            index=2, action=ActionType.CLICK,
+            id="click_search", index=2, action=ActionType.CLICK,
             target=Target(
-                description="Search",
-                locators=[Locator(kind=LocatorKind.ROLE, role="button", value="Search")],
+                description="Search button",
+                strategies=[RoleStrategy(role="button", name="Search")],
             ),
+            error_rules=[
+                ErrorRule(
+                    when=TextPresent(text="No record found"),
+                    classify=ErrorClass.BUSINESS,
+                    outcome="member_not_found",
+                    message="No member exists for the given ID.",
+                ),
+            ],
         ),
         Step(
-            index=3, action=ActionType.READ, output_key="savings_balance",
+            id="read_savings", index=3, action=ActionType.READ, output="savings_balance",
             target=Target(
-                description="Savings balance",
-                locators=[Locator(kind=LocatorKind.TEXT, value="Savings")],
-                expect_text="Savings",
+                description="Savings balance cell",
+                strategies=[TextStrategy(text="Savings")],
+                expect=Expect(text_contains="Savings"),
             ),
+            checkpoint=TextPresent(text="Member Detail"),
         ),
     ],
-    policy=CapabilityPolicy(allowlist_domains=["127.0.0.1"]),
+    policy=Policy(
+        allowlist_domains=["127.0.0.1"],
+        allowlist_routes=["/members", "/members/lookup", "/members/detail"],
+    ),
     provenance=Provenance(discovery_run_id="demo-0001", model="nvidia/Nemotron-3-Ultra-550b-a55b"),
 )
 
-print("=== CAPABILITY ===")
+print("=== CAPABILITY ARTIFACT (cua.v1) ===")
 print(cap.model_dump_json(indent=2))
 
-# Round-trip check: JSON -> back into a Capability.
-Capability.model_validate_json(cap.model_dump_json())
+# Round-trip: JSON -> back into a validated artifact (exercises the discriminated unions).
+CapabilityArtifact.model_validate_json(cap.model_dump_json())
 print("\n[ok] Capability round-trips through JSON.")
 
 res = ReplayResult(
-    outcome=Outcome.BUSINESS_OUTCOME,
-    capability_id=cap.metadata.id,
-    capability_version=cap.metadata.version,
+    status=Status.BUSINESS_OUTCOME,
+    capability_id=cap.id,
+    capability_version=cap.version,
     run_id="replay-0002",
-    business_outcome="member_not_found",
+    business_outcome=BusinessOutcome(code="member_not_found", message="No member exists for the given ID."),
 )
 print("\n=== EXAMPLE REPLAY RESULT (business outcome) ===")
 print(res.model_dump_json(indent=2))
