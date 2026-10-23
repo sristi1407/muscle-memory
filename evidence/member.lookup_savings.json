@@ -1,0 +1,196 @@
+{
+  "schema_version": "cua.v1",
+  "id": "member.lookup_savings",
+  "version": "1.0.0",
+  "name": "Look up member savings balance",
+  "description": "Open member lookup, search by ID, and read the savings balance from the detail screen.",
+  "metadata": {
+    "app": "MidStates Core",
+    "surface": "web-legacy",
+    "tenant": null,
+    "author": null,
+    "created_at": "2026-10-23T03:33:42.288930Z",
+    "updated_at": null
+  },
+  "contract": {
+    "inputs": [
+      {
+        "name": "member_id",
+        "type": "string",
+        "required": true,
+        "description": null,
+        "sensitive": false,
+        "example": null
+      }
+    ],
+    "outputs": [
+      {
+        "name": "savings_balance",
+        "type": "string",
+        "description": null,
+        "sensitive": false
+      }
+    ],
+    "success": {
+      "kind": "text_present",
+      "text": "Savings",
+      "description": "Reached the screen showing the requested value."
+    }
+  },
+  "steps": [
+    {
+      "id": "step0_navigate",
+      "index": 0,
+      "action": "navigate",
+      "target": null,
+      "value": null,
+      "url": "http://127.0.0.1:5001/members",
+      "output": null,
+      "wait_for": null,
+      "checkpoint": null,
+      "error_rules": [],
+      "risk": "safe"
+    },
+    {
+      "id": "step1_type",
+      "index": 1,
+      "action": "type",
+      "target": {
+        "description": "Member ID",
+        "strategies": [
+          {
+            "kind": "role",
+            "role": "textbox",
+            "name": "Member ID",
+            "exact": false
+          },
+          {
+            "kind": "placeholder",
+            "placeholder": "Member ID"
+          }
+        ],
+        "expect": {
+          "role": null,
+          "editable": true,
+          "visible": true,
+          "text_contains": null
+        }
+      },
+      "value": {
+        "kind": "param",
+        "param": "member_id"
+      },
+      "url": null,
+      "output": null,
+      "wait_for": null,
+      "checkpoint": null,
+      "error_rules": [],
+      "risk": "safe"
+    },
+    {
+      "id": "step2_click",
+      "index": 2,
+      "action": "click",
+      "target": {
+        "description": "Search",
+        "strategies": [
+          {
+            "kind": "role",
+            "role": "button",
+            "name": "Search",
+            "exact": false
+          }
+        ],
+        "expect": null
+      },
+      "value": null,
+      "url": null,
+      "output": null,
+      "wait_for": null,
+      "checkpoint": null,
+      "error_rules": [
+        {
+          "when": {
+            "kind": "text_present",
+            "text": "No record found",
+            "description": null
+          },
+          "classify": "business",
+          "outcome": "member_not_found",
+          "recover": null,
+          "message": "No member exists for the given ID."
+        },
+        {
+          "when": {
+            "kind": "text_present",
+            "text": "System Notice",
+            "description": null
+          },
+          "classify": "recoverable",
+          "outcome": null,
+          "recover": {
+            "kind": "dismiss",
+            "target": {
+              "description": "Acknowledge & Continue",
+              "strategies": [
+                {
+                  "kind": "role",
+                  "role": "button",
+                  "name": "Acknowledge & Continue",
+                  "exact": false
+                }
+              ],
+              "expect": null
+            },
+            "description": null
+          },
+          "message": "Dismissed a maintenance interstitial and continued."
+        }
+      ],
+      "risk": "safe"
+    },
+    {
+      "id": "step3_read",
+      "index": 3,
+      "action": "read",
+      "target": {
+        "description": "Savings",
+        "strategies": [
+          {
+            "kind": "text",
+            "text": "Savings",
+            "exact": true
+          }
+        ],
+        "expect": {
+          "role": null,
+          "editable": null,
+          "visible": true,
+          "text_contains": "Savings"
+        }
+      },
+      "value": null,
+      "url": null,
+      "output": "savings_balance",
+      "wait_for": null,
+      "checkpoint": null,
+      "error_rules": [],
+      "risk": "safe"
+    }
+  ],
+  "policy": {
+    "allowlist_domains": [
+      "127.0.0.1"
+    ],
+    "allowlist_routes": [
+      "/members",
+      "/members/lookup"
+    ],
+    "approval_required": []
+  },
+  "provenance": {
+    "discovery_run_id": "c459fcc8",
+    "model": "nvidia/Nemotron-3-Ultra-550b-a55b",
+    "transcript_ref": "evidence/01-discovery/discovery-c459fcc8/run.jsonl"
+  }
+}

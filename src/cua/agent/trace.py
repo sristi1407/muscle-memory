@@ -24,6 +24,8 @@ class TraceStep(BaseModel):
 
 
 class DiscoveryTrace(BaseModel):
+    run_id: str | None = Field(default=None, description="Discovery run id (links to its evidence).")
+    evidence_ref: str | None = Field(default=None, description="Path to this run's redacted JSONL log.")
     goal: str
     app: str | None = None
     model: str | None = Field(default=None, description="Model that produced this trace (for provenance).")

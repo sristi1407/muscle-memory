@@ -213,7 +213,9 @@ class PlaywrightWebSurface(Surface):
                         return loc
             except Exception as e:  # noqa: BLE001 - try the next fallback
                 last = e
-        raise LocatorError(f"no strategy resolved '{target.description}' on {self.page.url}: {last}")
+        tried = ", ".join(s.kind for s in target.strategies)
+        msg = f"no strategy resolved '{target.description}' on {self.page.url} (tried: {tried})"
+        raise LocatorError(f"{msg}: {last}" if last else msg)
 
     def _passes_expect(self, loc, expect) -> bool:
         if expect is None:

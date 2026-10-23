@@ -1,0 +1,11 @@
+{
+  "screenshot": "evidence/05-failure-session-timeout/replay-d187f7c3/failure.png",
+  "step_id": "step1_type",
+  "step_index": 1,
+  "expected": "resolve target 'Member ID'",
+  "observed": "no strategy resolved 'Member ID' on http://127.0.0.1:5001/members (tried: role, placeholder)",
+  "error_class": "locator",
+  "url": "http://127.0.0.1:5001/members",
+  "title": "Session Expired - MidStates Core",
+  "accessibility_tree": "- table:\n  - rowgroup:\n    - 'row \"MidStates Core Back-Office Servicing Console Operator: svc_agent01 | Session active\"':\n      - cell \"MidStates Core Back-Office Servicing Console\"\n      - 'cell \"Operator: svc_agent01 | Session active\"'\n- table:\n  - rowgroup:\n    - row \"Home Member Lookup Transactions Admin\":\n      - cell \"Home\":\n        - link \"Home\":\n          - /url: /\n      - cell \"Member Lookup\":\n        - link \"Member Lookup\":\n          - /url: /members\n      - cell \"Transactions\":\n        - link \"Transactions\":\n          - /url: /\n      - cell \"Admin\":\n        - link \"Admin\":\n          - /url: /\n- table:\n  - rowgroup:\n    - row \"Session Expired\":\n      - cell \"Session Expired\"\n    - row \"Your session has timed out due to inactivity. Please sign in again to continue. Return to Sign In\":\n      - cell \"Your session has timed out due to inactivity. Please sign in again to continue. Return to Sign In\":\n        - text: Your session has timed out due to inactivity. Please sign in again to continue.\n        - button \"Return to Sign In\"\n- table:\n  - rowgroup:\n    - row \"MidStates Core v7.2.1 (build 20180921) \u2014 internal use only \u2014 synthetic demo data\":\n      - cell \"MidStates Core v7.2.1 (build 20180921) \u2014 internal use only \u2014 synthetic demo data\""
+}

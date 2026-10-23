@@ -124,7 +124,8 @@ def compile_trace(
         steps=steps,
         policy=Policy(allowlist_domains=[host] if host else [], allowlist_routes=routes),
         provenance=Provenance(
-            discovery_run_id=run_id or uuid.uuid4().hex[:8],
+            discovery_run_id=run_id or trace.run_id or uuid.uuid4().hex[:8],
             model=trace.model or "unknown",
+            transcript_ref=trace.evidence_ref,  # the redacted discovery log, not the raw transcript
         ),
     )

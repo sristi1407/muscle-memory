@@ -1,0 +1,15 @@
+{"seq": 1, "ts": "2026-10-23T03:33:42.599+00:00", "event": "run_start", "capability_id": "member.lookup_savings", "capability_version": "1.0.0", "params": {"member_id": "12345"}}
+{"seq": 2, "ts": "2026-10-23T03:33:42.604+00:00", "event": "step_attempt", "step_id": "step0_navigate", "index": 0, "action": "navigate", "attempt": 1, "error": null}
+{"seq": 3, "ts": "2026-10-23T03:33:42.628+00:00", "event": "screenshot", "path": "evidence/04-recovered-interstitial/replay-5272441a/step-00.png"}
+{"seq": 4, "ts": "2026-10-23T03:33:42.628+00:00", "event": "step_result", "step_id": "step0_navigate", "index": 0, "status": "ok", "observed": null}
+{"seq": 5, "ts": "2026-10-23T03:33:42.634+00:00", "event": "step_attempt", "step_id": "step1_type", "index": 1, "action": "type", "attempt": 1, "error": null}
+{"seq": 6, "ts": "2026-10-23T03:33:42.645+00:00", "event": "screenshot", "path": "evidence/04-recovered-interstitial/replay-5272441a/step-01.png"}
+{"seq": 7, "ts": "2026-10-23T03:33:42.645+00:00", "event": "step_result", "step_id": "step1_type", "index": 1, "status": "ok", "observed": null}
+{"seq": 8, "ts": "2026-10-23T03:33:42.693+00:00", "event": "step_attempt", "step_id": "step2_click", "index": 2, "action": "click", "attempt": 1, "error": null}
+{"seq": 9, "ts": "2026-10-23T03:33:42.748+00:00", "event": "rule_fired", "step_id": "step2_click", "verdict": "recovered", "detail": null}
+{"seq": 10, "ts": "2026-10-23T03:33:42.776+00:00", "event": "screenshot", "path": "evidence/04-recovered-interstitial/replay-5272441a/step-02.png"}
+{"seq": 11, "ts": "2026-10-23T03:33:42.776+00:00", "event": "step_result", "step_id": "step2_click", "index": 2, "status": "recovered", "observed": null}
+{"seq": 12, "ts": "2026-10-23T03:33:42.779+00:00", "event": "step_attempt", "step_id": "step3_read", "index": 3, "action": "read", "attempt": 1, "error": null}
+{"seq": 13, "ts": "2026-10-23T03:33:42.791+00:00", "event": "screenshot", "path": "evidence/04-recovered-interstitial/replay-5272441a/step-03.png"}
+{"seq": 14, "ts": "2026-10-23T03:33:42.791+00:00", "event": "step_result", "step_id": "step3_read", "index": 3, "status": "ok", "observed": null}
+{"seq": 15, "ts": "2026-10-23T03:33:42.792+00:00", "event": "run_end", "result": {"status": "success", "capability_id": "member.lookup_savings", "capability_version": "1.0.0", "run_id": "5272441a", "outputs": {"savings_balance": "$4,210.55"}, "business_outcome": null, "failure": null, "steps": [{"step_id": "step0_navigate", "index": 0, "status": "ok", "observed": null, "screenshot_ref": "evidence/04-recovered-interstitial/replay-5272441a/step-00.png"}, {"step_id": "step1_type", "index": 1, "status": "ok", "observed": null, "screenshot_ref": "evidence/04-recovered-interstitial/replay-5272441a/step-01.png"}, {"step_id": "step2_click", "index": 2, "status": "recovered", "observed": null, "screenshot_ref": "evidence/04-recovered-interstitial/replay-5272441a/step-02.png"}, {"step_id": "step3_read", "index": 3, "status": "ok", "observed": null, "screenshot_ref": "evidence/04-recovered-interstitial/replay-5272441a/step-03.png"}]}}

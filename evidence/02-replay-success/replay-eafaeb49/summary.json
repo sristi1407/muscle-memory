@@ -1,0 +1,51 @@
+{
+  "run_id": "eafaeb49",
+  "log": "evidence/02-replay-success/replay-eafaeb49/run.jsonl",
+  "screenshots": [
+    "evidence/02-replay-success/replay-eafaeb49/step-00.png",
+    "evidence/02-replay-success/replay-eafaeb49/step-01.png",
+    "evidence/02-replay-success/replay-eafaeb49/step-02.png",
+    "evidence/02-replay-success/replay-eafaeb49/step-03.png"
+  ],
+  "result": {
+    "status": "success",
+    "capability_id": "member.lookup_savings",
+    "capability_version": "1.0.0",
+    "run_id": "eafaeb49",
+    "outputs": {
+      "savings_balance": "$15,230.10"
+    },
+    "business_outcome": null,
+    "failure": null,
+    "steps": [
+      {
+        "step_id": "step0_navigate",
+        "index": 0,
+        "status": "ok",
+        "observed": null,
+        "screenshot_ref": "evidence/02-replay-success/replay-eafaeb49/step-00.png"
+      },
+      {
+        "step_id": "step1_type",
+        "index": 1,
+        "status": "ok",
+        "observed": null,
+        "screenshot_ref": "evidence/02-replay-success/replay-eafaeb49/step-01.png"
+      },
+      {
+        "step_id": "step2_click",
+        "index": 2,
+        "status": "ok",
+        "observed": null,
+        "screenshot_ref": "evidence/02-replay-success/replay-eafaeb49/step-02.png"
+      },
+      {
+        "step_id": "step3_read",
+        "index": 3,
+        "status": "ok",
+        "observed": null,
+        "screenshot_ref": "evidence/02-replay-success/replay-eafaeb49/step-03.png"
+      }
+    ]
+  }
+}

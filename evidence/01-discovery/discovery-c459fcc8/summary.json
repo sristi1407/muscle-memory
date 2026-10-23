@@ -1,0 +1,15 @@
+{
+  "run_id": "c459fcc8",
+  "log": "evidence/01-discovery/discovery-c459fcc8/run.jsonl",
+  "screenshots": [
+    "evidence/01-discovery/discovery-c459fcc8/step-00.png",
+    "evidence/01-discovery/discovery-c459fcc8/step-01.png",
+    "evidence/01-discovery/discovery-c459fcc8/step-02.png",
+    "evidence/01-discovery/discovery-c459fcc8/step-03.png"
+  ],
+  "success": true,
+  "outputs": {
+    "savings_balance": "$4,210.55"
+  },
+  "steps": 4
+}

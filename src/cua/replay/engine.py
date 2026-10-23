@@ -36,7 +36,8 @@ from cua.schema import (
     StepStatus,
     TemplateValue,
 )
-from cua.policy import PolicyGate, PolicyViolation
+from cua.evidence import EvidenceRecorder, NullRecorder
+from cua.policy import PolicyGate, PolicyViolation, Redactor
 from cua.surface import LocatorError, Surface
 
 MAX_ATTEMPTS = 3
@@ -55,8 +56,9 @@ def resolve_value(value_source, params: dict[str, str]) -> str:
 
 
 class ReplayEngine:
-    def __init__(self, surface: Surface):
+    def __init__(self, surface: Surface, evidence_root: str | None = None):
         self.surface = surface
+        self.evidence_root = evidence_root  # None = no evidence written
 
     def replay(self, cap: CapabilityArtifact, params: dict[str, str] | None = None) -> ReplayResult:
         params = params or {}
@@ -64,20 +66,37 @@ class ReplayEngine:
         step_results: list[StepResult] = []
         outputs: dict[str, str] = {}
         gate = PolicyGate.from_capability(cap)
+        rec = self._recorder(cap, params, run_id)
+        rec.event("run_start", capability_id=cap.id, capability_version=cap.version, params=params)
 
         def result(status: Status, **kw) -> ReplayResult:
-            return ReplayResult(
+            res = ReplayResult(
                 status=status, capability_id=cap.id, capability_version=cap.version,
                 run_id=run_id, outputs=outputs, steps=step_results, **kw,
             )
+            res.evidence = rec.finish(result=res.model_dump(mode="json", exclude={"evidence"}))
+            return res
+
+        def record(step: Step, status: StepStatus, observed: str | None = None) -> None:
+            shot = rec.screenshot(self.surface, f"step-{step.index:02d}")
+            step_results.append(StepResult(step_id=step.id, index=step.index, status=status,
+                                           observed=observed, screenshot_ref=shot))
+            rec.event("step_result", step_id=step.id, index=step.index,
+                      status=status.value, observed=observed)
+
+        def failure(step_id: str, index: int, expected: str, observed: str,
+                    error_class: str) -> ReplayResult:
+            ref = rec.failure_snapshot(self.surface, step_id=step_id, step_index=index,
+                                       expected=expected, observed=observed, error_class=error_class)
+            return result(Status.FAILURE, failure=FailureDetail(
+                step_id=step_id, step_index=index, expected=expected,
+                observed=observed, error_class=error_class, evidence_ref=ref,
+            ))
 
         def fail(step: Step, expected: str, observed: str, error_class: str) -> ReplayResult:
             step_results.append(StepResult(step_id=step.id, index=step.index,
                                            status=StepStatus.FAILED, observed=observed))
-            return result(Status.FAILURE, failure=FailureDetail(
-                step_id=step.id, step_index=step.index,
-                expected=expected, observed=observed, error_class=error_class,
-            ))
+            return failure(step.id, step.index, expected, observed, error_class)
 
         for step in cap.steps:
             attempts = 0
@@ -96,14 +115,19 @@ class ReplayEngine:
                 except Exception as e:  # noqa: BLE001
                     exec_error = ("runtime", str(e))
 
+                rec.event("step_attempt", step_id=step.id, index=step.index,
+                          action=step.action.value, attempt=attempts,
+                          error=f"{exec_error[0]}: {exec_error[1]}" if exec_error else None)
+
                 # 2) evaluate error rules against the resulting screen
                 verdict = self._evaluate_rules(step)
 
                 if verdict is not None:
                     kind = verdict[0]
+                    detail = getattr(verdict[1], "code", verdict[1]) if len(verdict) > 1 else None
+                    rec.event("rule_fired", step_id=step.id, verdict=kind, detail=detail)
                     if kind == "business":
-                        step_results.append(StepResult(step_id=step.id, index=step.index,
-                                                       status=StepStatus.OK, observed=verdict[1].code))
+                        record(step, StepStatus.OK, verdict[1].code)
                         return result(Status.BUSINESS_OUTCOME, business_outcome=verdict[1])
                     if kind == "hard":
                         return fail(step, "no hard error", verdict[1], "hard")
@@ -112,8 +136,7 @@ class ReplayEngine:
                             continue  # re-attempt the same step
                         return fail(step, "recover", "recovery retries exhausted", "recoverable")
                     if kind == "recovered":
-                        step_results.append(StepResult(step_id=step.id, index=step.index,
-                                                       status=StepStatus.RECOVERED))
+                        record(step, StepStatus.RECOVERED)
                         break  # proceed to next step
 
                 # 3) no rule fired — now surface any execution error as a failure
@@ -127,19 +150,24 @@ class ReplayEngine:
                 if step.checkpoint and not self.surface.check(step.checkpoint):
                     return fail(step, "post-step checkpoint", "not satisfied", "checkpoint")
 
-                step_results.append(StepResult(step_id=step.id, index=step.index, status=StepStatus.OK))
+                record(step, StepStatus.OK)
                 break
 
         # overall success condition
         if not self.surface.check(cap.contract.success):
-            return result(Status.FAILURE, failure=FailureDetail(
-                step_id="success", step_index=len(cap.steps),
-                expected="success condition", observed="not satisfied", error_class="checkpoint",
-            ))
+            return failure("success", len(cap.steps), "success condition", "not satisfied", "checkpoint")
 
         return result(Status.SUCCESS)
 
     # ------------------------------------------------------------------ #
+    def _recorder(self, cap: CapabilityArtifact, params: dict[str, str], run_id: str):
+        if not self.evidence_root:
+            return NullRecorder()
+        # Mask inputs the contract declares sensitive, on top of the default PII patterns.
+        sensitive = [params[p.name] for p in cap.contract.inputs if p.sensitive and p.name in params]
+        return EvidenceRecorder(self.evidence_root, "replay", run_id,
+                                Redactor(sensitive_values=sensitive))
+
     def _do_step(self, step: Step, params: dict[str, str], outputs: dict[str, str],
                  gate: PolicyGate) -> None:
         s = self.surface
