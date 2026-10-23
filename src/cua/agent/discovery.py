@@ -9,7 +9,7 @@ is model-agnostic: hand it a NemotronLLM for real discovery or a MockLLM for a
 deterministic, no-key run.
 """
 from cua.llm import ACT_TOOL, LLM
-from cua.schema import ActionType
+from cua.schema import Action, ActionType
 from cua.surface import Surface
 
 from .trace import DiscoveryTrace, TraceStep
@@ -51,7 +51,16 @@ class DiscoveryAgent:
         outputs: dict[str, str] = {}
         success = False
 
-        for i in range(self.max_steps):
+        # Record the initial navigation as step 0 so replay starts on the right page.
+        steps.append(TraceStep(
+            index=0,
+            action=Action(action=ActionType.NAVIGATE, url=start_url, reason="open the start page"),
+            strategies=[],
+            url_before="",
+            url_after=self.surface.current_url(),
+        ))
+
+        for _ in range(self.max_steps):
             perc = self.surface.observe()
             action = self.llm.next_action(render_observation(goal, inputs, perc))
 
@@ -59,6 +68,7 @@ class DiscoveryAgent:
                 success = True
                 break
 
+            idx = len(steps)
             try:
                 strategies, value, result_text = self._execute(action)
                 self.surface.settle()
@@ -69,7 +79,7 @@ class DiscoveryAgent:
                 outputs[action.output_key] = value
 
             steps.append(TraceStep(
-                index=i,
+                index=idx,
                 action=action,
                 strategies=strategies,
                 url_before=perc.url,

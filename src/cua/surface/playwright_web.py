@@ -223,6 +223,21 @@ class PlaywrightWebSurface(Surface):
     def read_target(self, target) -> str:
         return self.resolve(target).inner_text().strip()
 
+    # ---- replay-time acting on a compiled Target ----
+    def type_into(self, target, text: str) -> None:
+        self.resolve(target).fill(text)
+
+    def click_target(self, target) -> None:
+        self.resolve(target).click()
+
+    def select_in(self, target, value: str) -> None:
+        self.resolve(target).select_option(value)
+
+    def read_value(self, target) -> str:
+        # Read anchored on the target's label (the stable thing the compiler stored).
+        value, _ = self.read_labeled_value(target.description)
+        return value
+
     def check(self, checkpoint) -> bool:
         page = self.page
         body = page.locator("body").inner_text()

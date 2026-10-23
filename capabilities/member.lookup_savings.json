@@ -9,7 +9,7 @@
     "surface": "web-legacy",
     "tenant": null,
     "author": null,
-    "created_at": "2026-10-20T23:11:01.635118Z",
+    "created_at": "2026-10-21T01:05:27.135869Z",
     "updated_at": null
   },
   "contract": {
@@ -39,8 +39,21 @@
   },
   "steps": [
     {
-      "id": "step0_type",
+      "id": "step0_navigate",
       "index": 0,
+      "action": "navigate",
+      "target": null,
+      "value": null,
+      "url": "http://127.0.0.1:5001/members",
+      "output": null,
+      "wait_for": null,
+      "checkpoint": null,
+      "error_rules": [],
+      "risk": "safe"
+    },
+    {
+      "id": "step1_type",
+      "index": 1,
       "action": "type",
       "target": {
         "description": "Member ID",
@@ -75,8 +88,8 @@
       "risk": "safe"
     },
     {
-      "id": "step1_click",
-      "index": 1,
+      "id": "step2_click",
+      "index": 2,
       "action": "click",
       "target": {
         "description": "Search",
@@ -99,8 +112,8 @@
       "risk": "safe"
     },
     {
-      "id": "step2_read",
-      "index": 2,
+      "id": "step3_read",
+      "index": 3,
       "action": "read",
       "target": {
         "description": "Savings",
@@ -138,7 +151,7 @@
     "approval_required": []
   },
   "provenance": {
-    "discovery_run_id": "778d5179",
+    "discovery_run_id": "5bb56141",
     "model": "mock",
     "transcript_ref": null
   }

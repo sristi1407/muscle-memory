@@ -81,6 +81,19 @@ class Surface(ABC):
     @abstractmethod
     def check(self, checkpoint: Checkpoint) -> bool: ...
 
+    # ---- replay-time acting on a compiled Target ----
+    @abstractmethod
+    def type_into(self, target: Target, text: str) -> None: ...
+
+    @abstractmethod
+    def click_target(self, target: Target) -> None: ...
+
+    @abstractmethod
+    def select_in(self, target: Target, value: str) -> None: ...
+
+    @abstractmethod
+    def read_value(self, target: Target) -> str: ...
+
     @abstractmethod
     def screenshot(self, path: str) -> None: ...
 
