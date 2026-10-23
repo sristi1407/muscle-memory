@@ -9,7 +9,7 @@
     "surface": "web-legacy",
     "tenant": null,
     "author": null,
-    "created_at": "2026-10-23T02:47:59.279728Z",
+    "created_at": "2026-10-23T03:06:31.859796Z",
     "updated_at": null
   },
   "contract": {
@@ -189,7 +189,7 @@
     "approval_required": []
   },
   "provenance": {
-    "discovery_run_id": "f28e437d",
+    "discovery_run_id": "ac93e50b",
     "model": "mock",
     "transcript_ref": null
   }

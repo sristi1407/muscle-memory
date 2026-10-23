@@ -13,6 +13,7 @@ dependencies = [
     "pydantic>=2.7",
     "openai>=1.40",
     "python-dotenv>=1.0",
+    "pytest>=8",
 ]
 
 [tool.setuptools.packages.find]

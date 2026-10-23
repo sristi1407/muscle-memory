@@ -36,6 +36,7 @@ from cua.schema import (
     StepStatus,
     TemplateValue,
 )
+from cua.policy import PolicyGate, PolicyViolation
 from cua.surface import LocatorError, Surface
 
 MAX_ATTEMPTS = 3
@@ -62,6 +63,7 @@ class ReplayEngine:
         run_id = uuid.uuid4().hex[:8]
         step_results: list[StepResult] = []
         outputs: dict[str, str] = {}
+        gate = PolicyGate.from_capability(cap)
 
         def result(status: Status, **kw) -> ReplayResult:
             return ReplayResult(
@@ -85,8 +87,10 @@ class ReplayEngine:
                 # 1) execute the action (capture, don't raise yet — a rule may explain it)
                 exec_error = None
                 try:
-                    self._do_step(step, params, outputs)
+                    self._do_step(step, params, outputs, gate)
                     self.surface.settle()
+                except PolicyViolation as e:
+                    exec_error = ("policy", str(e))
                 except LocatorError as e:
                     exec_error = ("locator", str(e))
                 except Exception as e:  # noqa: BLE001
@@ -136,10 +140,12 @@ class ReplayEngine:
         return result(Status.SUCCESS)
 
     # ------------------------------------------------------------------ #
-    def _do_step(self, step: Step, params: dict[str, str], outputs: dict[str, str]) -> None:
+    def _do_step(self, step: Step, params: dict[str, str], outputs: dict[str, str],
+                 gate: PolicyGate) -> None:
         s = self.surface
         a = step.action
         if a == ActionType.NAVIGATE:
+            gate.check_url(step.url or "")  # allowlist enforced before every navigation
             s.navigate(step.url or "")
         elif a == ActionType.TYPE:
             s.type_into(step.target, resolve_value(step.value, params))

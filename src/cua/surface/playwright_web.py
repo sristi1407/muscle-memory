@@ -22,6 +22,8 @@ from cua.schema import (
     ValueEquals,
 )
 
+from cua.policy import REDACT_DOM_JS, Redactor
+
 from .base import ActResult, LocatorError, Perception, Surface
 
 # Roles tried (in order) when resolving an element by its accessible name.
@@ -32,8 +34,10 @@ ROLE_PRIORITY = [
 
 
 class PlaywrightWebSurface(Surface):
-    def __init__(self, headless: bool = True):
+    def __init__(self, headless: bool = True, redactor: Redactor | None = None):
         self.headless = headless
+        # Redaction is ON by default: PII never leaves the surface in observations/screenshots.
+        self.redactor = redactor if redactor is not None else Redactor()
         self._pw = None
         self._browser = None
         self.page = None
@@ -68,7 +72,9 @@ class PlaywrightWebSurface(Surface):
         self.page.reload(wait_until="domcontentloaded")
 
     def observe(self) -> Perception:
-        return Perception(url=self.page.url, tree=self._ax_text(), title=self.page.title())
+        # Redact at the source: the model, the trace, and the logs all see the scrubbed tree.
+        tree = self.redactor.redact(self._ax_text()) if self.redactor else self._ax_text()
+        return Perception(url=self.page.url, tree=tree, title=self.page.title())
 
     def _ax_text(self) -> str:
         """Accessibility tree as compact text. Prefer aria_snapshot; fall back to a manual walk."""
@@ -263,4 +269,10 @@ class PlaywrightWebSurface(Surface):
         return False
 
     def screenshot(self, path: str) -> None:
+        # Scrub PII text nodes in the live DOM before capturing pixels.
+        if self.redactor:
+            try:
+                self.page.evaluate(REDACT_DOM_JS)
+            except Exception:
+                pass
         self.page.screenshot(path=path, full_page=True)
