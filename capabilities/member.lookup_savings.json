@@ -9,7 +9,7 @@
     "surface": "web-legacy",
     "tenant": null,
     "author": null,
-    "created_at": "2026-10-21T01:05:27.135869Z",
+    "created_at": "2026-10-23T02:47:59.279728Z",
     "updated_at": null
   },
   "contract": {
@@ -108,7 +108,45 @@
       "output": null,
       "wait_for": null,
       "checkpoint": null,
-      "error_rules": [],
+      "error_rules": [
+        {
+          "when": {
+            "kind": "text_present",
+            "text": "No record found",
+            "description": null
+          },
+          "classify": "business",
+          "outcome": "member_not_found",
+          "recover": null,
+          "message": "No member exists for the given ID."
+        },
+        {
+          "when": {
+            "kind": "text_present",
+            "text": "System Notice",
+            "description": null
+          },
+          "classify": "recoverable",
+          "outcome": null,
+          "recover": {
+            "kind": "dismiss",
+            "target": {
+              "description": "Acknowledge & Continue",
+              "strategies": [
+                {
+                  "kind": "role",
+                  "role": "button",
+                  "name": "Acknowledge & Continue",
+                  "exact": false
+                }
+              ],
+              "expect": null
+            },
+            "description": null
+          },
+          "message": "Dismissed a maintenance interstitial and continued."
+        }
+      ],
       "risk": "safe"
     },
     {
@@ -151,7 +189,7 @@
     "approval_required": []
   },
   "provenance": {
-    "discovery_run_id": "5bb56141",
+    "discovery_run_id": "f28e437d",
     "model": "mock",
     "transcript_ref": null
   }

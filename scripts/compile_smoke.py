@@ -13,7 +13,7 @@ load_dotenv()
 import os
 
 from cua.agent import DiscoveryAgent
-from cua.compiler import compile_trace, save_capability
+from cua.compiler import attach_lookup_error_rules, compile_trace, save_capability
 from cua.llm import MockLLM, NemotronLLM
 from cua.schema import Action, ActionType
 from cua.surface import PlaywrightWebSurface
@@ -44,6 +44,7 @@ cap = compile_trace(
     name="Look up member savings balance",
     description="Open member lookup, search by ID, and read the savings balance from the detail screen.",
 )
+attach_lookup_error_rules(cap)  # P4: author the business/recoverable error taxonomy
 
 print(cap.model_dump_json(indent=2))
 path = save_capability(cap, "capabilities")

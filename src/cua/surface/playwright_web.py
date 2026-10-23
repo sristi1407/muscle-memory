@@ -64,6 +64,9 @@ class PlaywrightWebSurface(Surface):
         except Exception:
             pass
 
+    def reload(self) -> None:
+        self.page.reload(wait_until="domcontentloaded")
+
     def observe(self) -> Perception:
         return Perception(url=self.page.url, tree=self._ax_text(), title=self.page.title())
 

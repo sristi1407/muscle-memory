@@ -104,6 +104,10 @@ class Surface(ABC):
         """Wait for the page to be ready after an action. No-op by default."""
         return None
 
+    def reload(self) -> None:
+        """Reload the current page."""
+        self.navigate(self.current_url())
+
     # ---- context manager sugar ----
     def __enter__(self):
         self.start()

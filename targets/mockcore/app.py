@@ -122,8 +122,12 @@ def page(title: str, body: str) -> str:
 </body></html>"""
 
 
-def interstitial_page(continue_to: str) -> str:
-    """An unexpected 'System Notice' that must be dismissed to proceed (recoverable)."""
+def interstitial_page(mid: str) -> str:
+    """An unexpected 'System Notice' that must be dismissed to proceed (recoverable).
+
+    The acknowledge form carries the member id as a hidden field so a GET submit
+    preserves it — a bare query string on the form `action` is dropped by the browser.
+    """
     body = f"""
 <table class="panel" width="520" align="center" style="margin-top:60px;">
   <tr class="hdr"><td colspan="2"><b>System Notice</b></td></tr>
@@ -132,7 +136,8 @@ def interstitial_page(continue_to: str) -> str:
       Please acknowledge to continue to your requested page.
   </td></tr>
   <tr><td colspan="2" align="right" style="padding:12px;">
-      <form method="get" action="{continue_to}" style="display:inline;">
+      <form method="get" action="/members/detail" style="display:inline;">
+        <input type="hidden" name="mid" value="{mid}">
         <input type="submit" class="btn" value="Acknowledge &amp; Continue">
       </form>
   </td></tr>
@@ -228,7 +233,7 @@ def member_lookup():
 
     # Unexpected interstitial before we can show the detail (recoverable condition).
     if scenario == "interstitial":
-        return interstitial_page(continue_to=f"/members/detail?mid={mid}")
+        return interstitial_page(mid)
 
     return _render_detail(mid)
 
