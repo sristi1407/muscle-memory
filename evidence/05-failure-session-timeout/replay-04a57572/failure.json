@@ -1,5 +1,5 @@
 {
-  "screenshot": "evidence/05-failure-session-timeout/replay-55938e74/failure.png",
+  "screenshot": "evidence/05-failure-session-timeout/replay-04a57572/failure.png",
   "step_id": "step0_navigate",
   "step_index": 0,
   "expected": "navigate http://127.0.0.1:5001/members to succeed",

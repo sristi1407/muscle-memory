@@ -37,8 +37,9 @@ from cua.replay import ReplayEngine
 from cua.schema import Action, ActionType
 from cua.surface import PlaywrightWebSurface
 
-BASE = "http://127.0.0.1:5001"
+BASE = os.environ.get("MOCKCORE_URL", "http://127.0.0.1:5001")
 EVIDENCE = os.environ.get("EVIDENCE_DIR", "evidence")
+CONSOLE_PORT = 5052  # not 5050, so this can run while scripts/escalation_demo.py is open
 SSN = "412-55-9832"  # fake SSN on member 12345's detail screen
 HEADLESS = os.environ.get("HEADLESS", "1") == "1"
 USE_MOCK = os.environ.get("MOCK", "1") == "1"
@@ -158,7 +159,7 @@ try:
         # 4) Human handoff — the same expired session, but now an operator is on call.
         set_scenario("timeout")
         channel = ControlChannel(claim_timeout_s=60)
-        with OperatorConsole(channel) as console:
+        with OperatorConsole(channel, port=CONSOLE_PORT) as console:
             scripted_operator(console.url, SIGN_IN)
             res = ReplayEngine(surface, evidence_root=f"{EVIDENCE}/06-human-handoff",
                                control=channel).replay(cap, {"member_id": "12345"})

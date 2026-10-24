@@ -117,6 +117,8 @@ PAGE = r"""<!doctype html>
            min-height:240px; }
   #frame.live { cursor:crosshair; outline:3px solid var(--human); }
   .hint { color:var(--muted); font-size:12px; margin-top:6px; }
+  #viewHint { margin:0 0 8px; font-size:13px; }
+  #viewHint.go { color:var(--human); font-weight:600; }
   dl { display:grid; grid-template-columns:96px 1fr; gap:4px 10px; margin:0; }
   dt { color:var(--muted); } dd { margin:0; overflow-wrap:anywhere; }
   .reason { color:var(--bad); font-weight:600; }
@@ -142,8 +144,8 @@ PAGE = r"""<!doctype html>
 <main>
   <section class="card" id="view">
     <h2>Live session</h2>
-    <img id="frame" alt="Live view of the automated browser session">
     <div class="hint" id="viewHint">This is the same browser session the automation was using.</div>
+    <img id="frame" alt="Live view of the automated browser session">
   </section>
   <section class="stack">
     <div class="card"><h2>Status</h2><div id="idle">Automation is running. Nothing needs you right now.</div></div>
@@ -181,7 +183,8 @@ PAGE = r"""<!doctype html>
 <script>
 const $ = id => document.getElementById(id);
 let state = null;
-const me = () => $('op').value.trim();
+let claimedAs = null;  // the name this page took control with; locked until control goes back
+const me = () => claimedAs || $('op').value.trim();
 const LABELS = { resume: 'Resume automation', abort: 'Abort run', approve: 'Approve step', deny: 'Deny' };
 const STYLE = { resume: 'go', approve: 'go', abort: 'stop', deny: 'stop' };
 const BADGE = { automation: 'Automation in control', awaiting_human: 'Waiting for an operator',
@@ -202,9 +205,16 @@ function render() {
   $('badge').textContent = BADGE[c] + (c === 'human' && r ? ` · ${r.operator}` : '');
   $('badge').className = 'badge ' + c;
   $('req').hidden = !r;
+  if (c === 'automation') claimedAs = null;  // control went back: unlock the name box
+  $('op').disabled = !!claimedAs;
+  if (claimedAs) $('op').value = claimedAs;
   $('frame').classList.toggle('live', holding());
-  $('viewHint').textContent = holding() ? 'You have control: click the screenshot to click the page.'
-                                        : 'This is the same browser session the automation was using.';
+  $('viewHint').classList.toggle('go', holding());
+  $('viewHint').textContent =
+      holding() ? 'You have control. Click directly on this page picture to click the real page ' +
+                  '(e.g. a button or a field), then type in the panel on the right.'
+    : c === 'human' && r ? `Control is held by ${r.operator}. Only they can act on the session.`
+    : 'This is the same browser session the automation was using.';
   const last = state.history.at(-1);
   $('idle').textContent =
       c === 'awaiting_human' ? 'Automation has paused and is waiting for an operator to take control.'
@@ -255,7 +265,11 @@ $('frame').addEventListener('click', e => {
                         x: e.offsetX * img.naturalWidth / img.clientWidth,
                         y: e.offsetY * img.naturalHeight / img.clientHeight });
 });
-$('claim').onclick = () => { if (!me()) return flash('Enter your operator name.'); api('/api/claim', { operator: me() }); };
+$('claim').onclick = () => {
+  const name = $('op').value.trim();
+  if (!name) return flash('Enter your operator name.');
+  api('/api/claim', { operator: name }).then(() => { claimedAs = name; });
+};
 $('typeBtn').onclick = () => {
   const text = $('text').value;
   if (text) api('/api/command', { operator: me(), kind: 'type', text }).then(() => { $('text').value = ''; });

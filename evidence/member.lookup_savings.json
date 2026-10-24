@@ -9,7 +9,7 @@
     "surface": "web-legacy",
     "tenant": null,
     "author": null,
-    "created_at": "2026-10-24T03:08:52.919250Z",
+    "created_at": "2026-10-24T03:40:12.759611Z",
     "updated_at": null
   },
   "contract": {
@@ -202,8 +202,8 @@
     "approval_required": []
   },
   "provenance": {
-    "discovery_run_id": "a941a2ea",
+    "discovery_run_id": "16acdb23",
     "model": "nvidia/Nemotron-3-Ultra-550b-a55b",
-    "transcript_ref": "evidence/01-discovery/discovery-a941a2ea/run.jsonl"
+    "transcript_ref": "evidence/01-discovery/discovery-16acdb23/run.jsonl"
   }
 }

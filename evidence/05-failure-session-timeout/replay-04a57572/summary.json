@@ -1,14 +1,14 @@
 {
-  "run_id": "55938e74",
-  "log": "evidence/05-failure-session-timeout/replay-55938e74/run.jsonl",
+  "run_id": "04a57572",
+  "log": "evidence/05-failure-session-timeout/replay-04a57572/run.jsonl",
   "screenshots": [
-    "evidence/05-failure-session-timeout/replay-55938e74/failure.png"
+    "evidence/05-failure-session-timeout/replay-04a57572/failure.png"
   ],
   "result": {
     "status": "failure",
     "capability_id": "member.lookup_savings",
     "capability_version": "1.0.0",
-    "run_id": "55938e74",
+    "run_id": "04a57572",
     "outputs": {},
     "business_outcome": null,
     "failure": {
@@ -18,7 +18,7 @@
       "observed": "Session expired. Signing back in needs a human: the agent never handles credentials.",
       "error_class": "hard",
       "code": "session_expired",
-      "evidence_ref": "evidence/05-failure-session-timeout/replay-55938e74/failure.json"
+      "evidence_ref": "evidence/05-failure-session-timeout/replay-04a57572/failure.json"
     },
     "steps": [
       {

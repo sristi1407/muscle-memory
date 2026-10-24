@@ -293,6 +293,12 @@ class PlaywrightWebSurface(Surface):
         self._after_raw_input()
 
     def type_text(self, text: str) -> None:
+        editable = self.page.evaluate(
+            "() => { const e = document.activeElement;"
+            " return !!e && (e.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.tagName)); }"
+        )
+        if not editable:  # otherwise the keystrokes silently go nowhere
+            raise RuntimeError("no field is selected on the page; click a field on the screenshot first")
         self.page.keyboard.type(text)
 
     def press_key(self, key: str) -> None:

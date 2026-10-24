@@ -1,20 +1,20 @@
 {
-  "run_id": "87294e6d",
-  "log": "evidence/06-human-handoff/replay-87294e6d/run.jsonl",
+  "run_id": "26a3fd9e",
+  "log": "evidence/06-human-handoff/replay-26a3fd9e/run.jsonl",
   "screenshots": [
-    "evidence/06-human-handoff/replay-87294e6d/intervention-87294e6d-1.png",
-    "evidence/06-human-handoff/replay-87294e6d/intervention-87294e6d-1-claimed.png",
-    "evidence/06-human-handoff/replay-87294e6d/intervention-87294e6d-1-resolved.png",
-    "evidence/06-human-handoff/replay-87294e6d/step-00.png",
-    "evidence/06-human-handoff/replay-87294e6d/step-01.png",
-    "evidence/06-human-handoff/replay-87294e6d/step-02.png",
-    "evidence/06-human-handoff/replay-87294e6d/step-03.png"
+    "evidence/06-human-handoff/replay-26a3fd9e/intervention-26a3fd9e-1.png",
+    "evidence/06-human-handoff/replay-26a3fd9e/intervention-26a3fd9e-1-claimed.png",
+    "evidence/06-human-handoff/replay-26a3fd9e/intervention-26a3fd9e-1-resolved.png",
+    "evidence/06-human-handoff/replay-26a3fd9e/step-00.png",
+    "evidence/06-human-handoff/replay-26a3fd9e/step-01.png",
+    "evidence/06-human-handoff/replay-26a3fd9e/step-02.png",
+    "evidence/06-human-handoff/replay-26a3fd9e/step-03.png"
   ],
   "result": {
     "status": "success",
     "capability_id": "member.lookup_savings",
     "capability_version": "1.0.0",
-    "run_id": "87294e6d",
+    "run_id": "26a3fd9e",
     "outputs": {
       "savings_balance": "$4,210.55"
     },
@@ -26,38 +26,38 @@
         "index": 0,
         "status": "ok",
         "observed": null,
-        "screenshot_ref": "evidence/06-human-handoff/replay-87294e6d/step-00.png"
+        "screenshot_ref": "evidence/06-human-handoff/replay-26a3fd9e/step-00.png"
       },
       {
         "step_id": "step1_type",
         "index": 1,
         "status": "ok",
         "observed": null,
-        "screenshot_ref": "evidence/06-human-handoff/replay-87294e6d/step-01.png"
+        "screenshot_ref": "evidence/06-human-handoff/replay-26a3fd9e/step-01.png"
       },
       {
         "step_id": "step2_click",
         "index": 2,
         "status": "ok",
         "observed": null,
-        "screenshot_ref": "evidence/06-human-handoff/replay-87294e6d/step-02.png"
+        "screenshot_ref": "evidence/06-human-handoff/replay-26a3fd9e/step-02.png"
       },
       {
         "step_id": "step3_read",
         "index": 3,
         "status": "ok",
         "observed": null,
-        "screenshot_ref": "evidence/06-human-handoff/replay-87294e6d/step-03.png"
+        "screenshot_ref": "evidence/06-human-handoff/replay-26a3fd9e/step-03.png"
       }
     ],
     "interventions": [
       {
-        "id": "87294e6d-1",
+        "id": "26a3fd9e-1",
         "kind": "stuck",
         "status": "resolved",
         "capability_id": "member.lookup_savings",
         "capability_version": "1.0.0",
-        "run_id": "87294e6d",
+        "run_id": "26a3fd9e",
         "step_id": "step0_navigate",
         "step_index": 0,
         "step_description": "navigate http://127.0.0.1:5001/members",
@@ -65,20 +65,20 @@
         "expected": "navigate http://127.0.0.1:5001/members to succeed",
         "observed": "Session expired. Signing back in needs a human: the agent never handles credentials.",
         "url": "http://127.0.0.1:5001/members",
-        "screenshot": "evidence/06-human-handoff/replay-87294e6d/intervention-87294e6d-1.png",
+        "screenshot": "evidence/06-human-handoff/replay-26a3fd9e/intervention-26a3fd9e-1.png",
         "allowed": [
           "resume",
           "abort"
         ],
-        "created_at": "2026-10-24T03:08:53.556636Z",
+        "created_at": "2026-10-24T03:40:13.357399Z",
         "operator": "ops.demo",
         "resolution": "resume",
         "note": "re-authenticated the expired session",
-        "resolved_at": "2026-10-24T03:08:54.179673Z",
+        "resolved_at": "2026-10-24T03:40:13.947356Z",
         "actions": [
           {
             "seq": 1,
-            "ts": "2026-10-24T03:08:53.823419Z",
+            "ts": "2026-10-24T03:40:13.622460Z",
             "operator": "ops.demo",
             "kind": "click_name",
             "detail": "click 'Return to Sign In'",
@@ -87,7 +87,7 @@
           },
           {
             "seq": 2,
-            "ts": "2026-10-24T03:08:53.898360Z",
+            "ts": "2026-10-24T03:40:13.692293Z",
             "operator": "ops.demo",
             "kind": "click_name",
             "detail": "click 'Operator ID'",
@@ -96,7 +96,7 @@
           },
           {
             "seq": 3,
-            "ts": "2026-10-24T03:08:53.932934Z",
+            "ts": "2026-10-24T03:40:13.721390Z",
             "operator": "ops.demo",
             "kind": "type",
             "detail": "type 'ops.demo'",
@@ -105,7 +105,7 @@
           },
           {
             "seq": 4,
-            "ts": "2026-10-24T03:08:54.014386Z",
+            "ts": "2026-10-24T03:40:13.813098Z",
             "operator": "ops.demo",
             "kind": "click_name",
             "detail": "click 'Password'",
@@ -114,7 +114,7 @@
           },
           {
             "seq": 5,
-            "ts": "2026-10-24T03:08:54.063552Z",
+            "ts": "2026-10-24T03:40:13.833477Z",
             "operator": "ops.demo",
             "kind": "type",
             "detail": "type [REDACTED:secret]",
@@ -123,7 +123,7 @@
           },
           {
             "seq": 6,
-            "ts": "2026-10-24T03:08:54.153588Z",
+            "ts": "2026-10-24T03:40:13.932177Z",
             "operator": "ops.demo",
             "kind": "click_name",
             "detail": "click 'Sign In'",

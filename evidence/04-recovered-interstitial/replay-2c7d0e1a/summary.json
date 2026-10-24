@@ -1,17 +1,17 @@
 {
-  "run_id": "99537fe5",
-  "log": "evidence/04-recovered-interstitial/replay-99537fe5/run.jsonl",
+  "run_id": "2c7d0e1a",
+  "log": "evidence/04-recovered-interstitial/replay-2c7d0e1a/run.jsonl",
   "screenshots": [
-    "evidence/04-recovered-interstitial/replay-99537fe5/step-00.png",
-    "evidence/04-recovered-interstitial/replay-99537fe5/step-01.png",
-    "evidence/04-recovered-interstitial/replay-99537fe5/step-02.png",
-    "evidence/04-recovered-interstitial/replay-99537fe5/step-03.png"
+    "evidence/04-recovered-interstitial/replay-2c7d0e1a/step-00.png",
+    "evidence/04-recovered-interstitial/replay-2c7d0e1a/step-01.png",
+    "evidence/04-recovered-interstitial/replay-2c7d0e1a/step-02.png",
+    "evidence/04-recovered-interstitial/replay-2c7d0e1a/step-03.png"
   ],
   "result": {
     "status": "success",
     "capability_id": "member.lookup_savings",
     "capability_version": "1.0.0",
-    "run_id": "99537fe5",
+    "run_id": "2c7d0e1a",
     "outputs": {
       "savings_balance": "$4,210.55"
     },
@@ -23,28 +23,28 @@
         "index": 0,
         "status": "ok",
         "observed": null,
-        "screenshot_ref": "evidence/04-recovered-interstitial/replay-99537fe5/step-00.png"
+        "screenshot_ref": "evidence/04-recovered-interstitial/replay-2c7d0e1a/step-00.png"
       },
       {
         "step_id": "step1_type",
         "index": 1,
         "status": "ok",
         "observed": null,
-        "screenshot_ref": "evidence/04-recovered-interstitial/replay-99537fe5/step-01.png"
+        "screenshot_ref": "evidence/04-recovered-interstitial/replay-2c7d0e1a/step-01.png"
       },
       {
         "step_id": "step2_click",
         "index": 2,
         "status": "recovered",
         "observed": null,
-        "screenshot_ref": "evidence/04-recovered-interstitial/replay-99537fe5/step-02.png"
+        "screenshot_ref": "evidence/04-recovered-interstitial/replay-2c7d0e1a/step-02.png"
       },
       {
         "step_id": "step3_read",
         "index": 3,
         "status": "ok",
         "observed": null,
-        "screenshot_ref": "evidence/04-recovered-interstitial/replay-99537fe5/step-03.png"
+        "screenshot_ref": "evidence/04-recovered-interstitial/replay-2c7d0e1a/step-03.png"
       }
     ],
     "interventions": []

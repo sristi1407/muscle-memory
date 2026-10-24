@@ -1,17 +1,17 @@
 {
-  "run_id": "e7c3172d",
-  "log": "evidence/02-replay-success/replay-e7c3172d/run.jsonl",
+  "run_id": "d93bc508",
+  "log": "evidence/02-replay-success/replay-d93bc508/run.jsonl",
   "screenshots": [
-    "evidence/02-replay-success/replay-e7c3172d/step-00.png",
-    "evidence/02-replay-success/replay-e7c3172d/step-01.png",
-    "evidence/02-replay-success/replay-e7c3172d/step-02.png",
-    "evidence/02-replay-success/replay-e7c3172d/step-03.png"
+    "evidence/02-replay-success/replay-d93bc508/step-00.png",
+    "evidence/02-replay-success/replay-d93bc508/step-01.png",
+    "evidence/02-replay-success/replay-d93bc508/step-02.png",
+    "evidence/02-replay-success/replay-d93bc508/step-03.png"
   ],
   "result": {
     "status": "success",
     "capability_id": "member.lookup_savings",
     "capability_version": "1.0.0",
-    "run_id": "e7c3172d",
+    "run_id": "d93bc508",
     "outputs": {
       "savings_balance": "$15,230.10"
     },
@@ -23,28 +23,28 @@
         "index": 0,
         "status": "ok",
         "observed": null,
-        "screenshot_ref": "evidence/02-replay-success/replay-e7c3172d/step-00.png"
+        "screenshot_ref": "evidence/02-replay-success/replay-d93bc508/step-00.png"
       },
       {
         "step_id": "step1_type",
         "index": 1,
         "status": "ok",
         "observed": null,
-        "screenshot_ref": "evidence/02-replay-success/replay-e7c3172d/step-01.png"
+        "screenshot_ref": "evidence/02-replay-success/replay-d93bc508/step-01.png"
       },
       {
         "step_id": "step2_click",
         "index": 2,
         "status": "ok",
         "observed": null,
-        "screenshot_ref": "evidence/02-replay-success/replay-e7c3172d/step-02.png"
+        "screenshot_ref": "evidence/02-replay-success/replay-d93bc508/step-02.png"
       },
       {
         "step_id": "step3_read",
         "index": 3,
         "status": "ok",
         "observed": null,
-        "screenshot_ref": "evidence/02-replay-success/replay-e7c3172d/step-03.png"
+        "screenshot_ref": "evidence/02-replay-success/replay-d93bc508/step-03.png"
       }
     ],
     "interventions": []
