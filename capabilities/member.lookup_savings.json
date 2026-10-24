@@ -9,7 +9,7 @@
     "surface": "web-legacy",
     "tenant": null,
     "author": null,
-    "created_at": "2026-10-23T03:06:31.859796Z",
+    "created_at": "2026-10-24T02:04:49.538768Z",
     "updated_at": null
   },
   "contract": {
@@ -178,6 +178,19 @@
       "risk": "safe"
     }
   ],
+  "error_rules": [
+    {
+      "when": {
+        "kind": "text_present",
+        "text": "Your session has timed out",
+        "description": null
+      },
+      "classify": "hard",
+      "outcome": "session_expired",
+      "recover": null,
+      "message": "Session expired. Signing back in needs a human: the agent never handles credentials."
+    }
+  ],
   "policy": {
     "allowlist_domains": [
       "127.0.0.1"
@@ -189,7 +202,7 @@
     "approval_required": []
   },
   "provenance": {
-    "discovery_run_id": "ac93e50b",
+    "discovery_run_id": "42c51a52",
     "model": "mock",
     "transcript_ref": null
   }

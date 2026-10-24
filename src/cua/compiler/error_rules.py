@@ -37,9 +37,21 @@ LOOKUP_ERROR_RULES = [
 ]
 
 
+# App-wide: these can appear after ANY step, so they live on the capability, not one step.
+APP_ERROR_RULES = [
+    ErrorRule(
+        when=TextPresent(text="Your session has timed out"),
+        classify=ErrorClass.HARD,
+        outcome="session_expired",
+        message="Session expired. Signing back in needs a human: the agent never handles credentials.",
+    ),
+]
+
+
 def attach_lookup_error_rules(cap: CapabilityArtifact) -> CapabilityArtifact:
-    """Attach the lookup error taxonomy to the Search/submit (click) step."""
+    """Attach the lookup error taxonomy: per-step rules on the Search submit, plus app-wide rules."""
     for step in cap.steps:
         if step.action == ActionType.CLICK:
             step.error_rules = list(LOOKUP_ERROR_RULES)
+    cap.error_rules = list(APP_ERROR_RULES)
     return cap

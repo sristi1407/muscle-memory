@@ -202,7 +202,9 @@ class ErrorRule(BaseModel):
     when: Checkpoint = Field(description="Condition that detects this error on the current screen.")
     classify: ErrorClass
     outcome: str | None = Field(
-        default=None, description="For business: the named outcome code (e.g. 'member_not_found')."
+        default=None,
+        description="Named code: the business outcome (e.g. 'member_not_found'), or for hard "
+                    "errors the failure code (e.g. 'session_expired').",
     )
     recover: Optional[RecoveryAction] = Field(
         default=None, description="For recoverable: the action that unsticks replay."
@@ -309,5 +311,10 @@ class CapabilityArtifact(BaseModel):
     metadata: Metadata
     contract: Contract
     steps: list[Step]
+    error_rules: list[ErrorRule] = Field(
+        default_factory=list,
+        description="App-wide rules checked after every step, after the step's own rules "
+                    "(conditions like session expiry that can appear anywhere).",
+    )
     policy: Policy = Field(default_factory=Policy)
     provenance: Provenance

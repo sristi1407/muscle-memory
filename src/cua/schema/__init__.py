@@ -44,6 +44,14 @@ from .artifact import (
     RetryWithBackoff,
     ReloadPage,
 )
+from .intervention import (
+    Controller,
+    HumanAction,
+    InterventionKind,
+    InterventionRequest,
+    RequestStatus,
+    Resolution,
+)
 from .result import (
     BusinessOutcome,
     Evidence,
@@ -65,4 +73,5 @@ __all__ = [
     "Checkpoint", "UrlMatches", "TextPresent", "TextAbsent", "ElementVisible", "ValueEquals",
     "ErrorRule", "ErrorClass", "RecoveryAction", "DismissInterstitial", "RetryWithBackoff", "ReloadPage",
     "BusinessOutcome", "Evidence", "FailureDetail", "ReplayResult", "Status", "StepResult", "StepStatus",
+    "Controller", "HumanAction", "InterventionKind", "InterventionRequest", "RequestStatus", "Resolution",
 ]

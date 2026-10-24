@@ -270,11 +270,47 @@ class PlaywrightWebSurface(Surface):
                 return False
         return False
 
-    def screenshot(self, path: str) -> None:
+    def _mask_pii(self) -> None:
         # Scrub PII text nodes in the live DOM before capturing pixels.
         if self.redactor:
             try:
                 self.page.evaluate(REDACT_DOM_JS)
             except Exception:
                 pass
+
+    def screenshot(self, path: str) -> None:
+        self._mask_pii()
         self.page.screenshot(path=path, full_page=True)
+
+    # ---- operator (human) control ----
+    def frame(self) -> bytes:
+        # Viewport only, so pixel coordinates in the image are click coordinates on the page.
+        self._mask_pii()
+        return self.page.screenshot(full_page=False)
+
+    def click_at(self, x: float, y: float) -> None:
+        self.page.mouse.click(x, y)
+        self._after_raw_input()
+
+    def type_text(self, text: str) -> None:
+        self.page.keyboard.type(text)
+
+    def press_key(self, key: str) -> None:
+        self.page.keyboard.press(key)
+        self._after_raw_input()
+
+    def _after_raw_input(self) -> None:
+        # Raw mouse/keyboard input doesn't wait for a navigation it triggers (locator
+        # clicks do), so give one a moment to start, then let it finish loading —
+        # otherwise the recorded url_after and the operator's live view are stale.
+        self.page.wait_for_timeout(300)
+        self.settle()
+
+    def focus_is_secret(self) -> bool:
+        try:
+            return bool(self.page.evaluate(
+                "() => { const e = document.activeElement;"
+                " return !!e && (e.type === 'password' || e.autocomplete === 'current-password'); }"
+            ))
+        except Exception:
+            return True  # can't tell -> treat as secret

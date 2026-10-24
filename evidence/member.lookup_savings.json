@@ -9,7 +9,7 @@
     "surface": "web-legacy",
     "tenant": null,
     "author": null,
-    "created_at": "2026-10-23T03:33:42.288930Z",
+    "created_at": "2026-10-24T03:08:52.919250Z",
     "updated_at": null
   },
   "contract": {
@@ -178,6 +178,19 @@
       "risk": "safe"
     }
   ],
+  "error_rules": [
+    {
+      "when": {
+        "kind": "text_present",
+        "text": "Your session has timed out",
+        "description": null
+      },
+      "classify": "hard",
+      "outcome": "session_expired",
+      "recover": null,
+      "message": "Session expired. Signing back in needs a human: the agent never handles credentials."
+    }
+  ],
   "policy": {
     "allowlist_domains": [
       "127.0.0.1"
@@ -189,8 +202,8 @@
     "approval_required": []
   },
   "provenance": {
-    "discovery_run_id": "c459fcc8",
+    "discovery_run_id": "a941a2ea",
     "model": "nvidia/Nemotron-3-Ultra-550b-a55b",
-    "transcript_ref": "evidence/01-discovery/discovery-c459fcc8/run.jsonl"
+    "transcript_ref": "evidence/01-discovery/discovery-a941a2ea/run.jsonl"
   }
 }

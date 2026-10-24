@@ -71,6 +71,14 @@ class EvidenceRecorder:
         self.event("failure_snapshot", path=path)
         return path
 
+    def attach(self, name: str, data) -> str:
+        """Save a named JSON document next to the log (e.g. an intervention request)."""
+        path = os.path.join(self.dir, f"{name}.json")
+        with open(path, "w") as f:
+            json.dump(self._scrub(data), f, indent=2)
+        self.event("attachment", name=name, path=path)
+        return path
+
     def finish(self, **summary) -> Evidence:
         self.event("run_end", **summary)
         data = {"run_id": self.run_id, "log": self.log_path,
@@ -106,6 +114,9 @@ class NullRecorder:
         return None
 
     def failure_snapshot(self, *args, **kwargs) -> None:
+        return None
+
+    def attach(self, *args, **kwargs) -> None:
         return None
 
     def finish(self, **kwargs) -> None:

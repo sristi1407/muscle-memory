@@ -1,0 +1,137 @@
+{
+  "run_id": "87294e6d",
+  "log": "evidence/06-human-handoff/replay-87294e6d/run.jsonl",
+  "screenshots": [
+    "evidence/06-human-handoff/replay-87294e6d/intervention-87294e6d-1.png",
+    "evidence/06-human-handoff/replay-87294e6d/intervention-87294e6d-1-claimed.png",
+    "evidence/06-human-handoff/replay-87294e6d/intervention-87294e6d-1-resolved.png",
+    "evidence/06-human-handoff/replay-87294e6d/step-00.png",
+    "evidence/06-human-handoff/replay-87294e6d/step-01.png",
+    "evidence/06-human-handoff/replay-87294e6d/step-02.png",
+    "evidence/06-human-handoff/replay-87294e6d/step-03.png"
+  ],
+  "result": {
+    "status": "success",
+    "capability_id": "member.lookup_savings",
+    "capability_version": "1.0.0",
+    "run_id": "87294e6d",
+    "outputs": {
+      "savings_balance": "$4,210.55"
+    },
+    "business_outcome": null,
+    "failure": null,
+    "steps": [
+      {
+        "step_id": "step0_navigate",
+        "index": 0,
+        "status": "ok",
+        "observed": null,
+        "screenshot_ref": "evidence/06-human-handoff/replay-87294e6d/step-00.png"
+      },
+      {
+        "step_id": "step1_type",
+        "index": 1,
+        "status": "ok",
+        "observed": null,
+        "screenshot_ref": "evidence/06-human-handoff/replay-87294e6d/step-01.png"
+      },
+      {
+        "step_id": "step2_click",
+        "index": 2,
+        "status": "ok",
+        "observed": null,
+        "screenshot_ref": "evidence/06-human-handoff/replay-87294e6d/step-02.png"
+      },
+      {
+        "step_id": "step3_read",
+        "index": 3,
+        "status": "ok",
+        "observed": null,
+        "screenshot_ref": "evidence/06-human-handoff/replay-87294e6d/step-03.png"
+      }
+    ],
+    "interventions": [
+      {
+        "id": "87294e6d-1",
+        "kind": "stuck",
+        "status": "resolved",
+        "capability_id": "member.lookup_savings",
+        "capability_version": "1.0.0",
+        "run_id": "87294e6d",
+        "step_id": "step0_navigate",
+        "step_index": 0,
+        "step_description": "navigate http://127.0.0.1:5001/members",
+        "reason": "session_expired",
+        "expected": "navigate http://127.0.0.1:5001/members to succeed",
+        "observed": "Session expired. Signing back in needs a human: the agent never handles credentials.",
+        "url": "http://127.0.0.1:5001/members",
+        "screenshot": "evidence/06-human-handoff/replay-87294e6d/intervention-87294e6d-1.png",
+        "allowed": [
+          "resume",
+          "abort"
+        ],
+        "created_at": "2026-10-24T03:08:53.556636Z",
+        "operator": "ops.demo",
+        "resolution": "resume",
+        "note": "re-authenticated the expired session",
+        "resolved_at": "2026-10-24T03:08:54.179673Z",
+        "actions": [
+          {
+            "seq": 1,
+            "ts": "2026-10-24T03:08:53.823419Z",
+            "operator": "ops.demo",
+            "kind": "click_name",
+            "detail": "click 'Return to Sign In'",
+            "url_before": "http://127.0.0.1:5001/members",
+            "url_after": "http://127.0.0.1:5001/signin?"
+          },
+          {
+            "seq": 2,
+            "ts": "2026-10-24T03:08:53.898360Z",
+            "operator": "ops.demo",
+            "kind": "click_name",
+            "detail": "click 'Operator ID'",
+            "url_before": "http://127.0.0.1:5001/signin?",
+            "url_after": "http://127.0.0.1:5001/signin?"
+          },
+          {
+            "seq": 3,
+            "ts": "2026-10-24T03:08:53.932934Z",
+            "operator": "ops.demo",
+            "kind": "type",
+            "detail": "type 'ops.demo'",
+            "url_before": "http://127.0.0.1:5001/signin?",
+            "url_after": "http://127.0.0.1:5001/signin?"
+          },
+          {
+            "seq": 4,
+            "ts": "2026-10-24T03:08:54.014386Z",
+            "operator": "ops.demo",
+            "kind": "click_name",
+            "detail": "click 'Password'",
+            "url_before": "http://127.0.0.1:5001/signin?",
+            "url_after": "http://127.0.0.1:5001/signin?"
+          },
+          {
+            "seq": 5,
+            "ts": "2026-10-24T03:08:54.063552Z",
+            "operator": "ops.demo",
+            "kind": "type",
+            "detail": "type [REDACTED:secret]",
+            "url_before": "http://127.0.0.1:5001/signin?",
+            "url_after": "http://127.0.0.1:5001/signin?"
+          },
+          {
+            "seq": 6,
+            "ts": "2026-10-24T03:08:54.153588Z",
+            "operator": "ops.demo",
+            "kind": "click_name",
+            "detail": "click 'Sign In'",
+            "url_before": "http://127.0.0.1:5001/signin?",
+            "url_after": "http://127.0.0.1:5001/members"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "run_id": "55938e74",
+  "log": "evidence/05-failure-session-timeout/replay-55938e74/run.jsonl",
+  "screenshots": [
+    "evidence/05-failure-session-timeout/replay-55938e74/failure.png"
+  ],
+  "result": {
+    "status": "failure",
+    "capability_id": "member.lookup_savings",
+    "capability_version": "1.0.0",
+    "run_id": "55938e74",
+    "outputs": {},
+    "business_outcome": null,
+    "failure": {
+      "step_id": "step0_navigate",
+      "step_index": 0,
+      "expected": "navigate http://127.0.0.1:5001/members to succeed",
+      "observed": "Session expired. Signing back in needs a human: the agent never handles credentials.",
+      "error_class": "hard",
+      "code": "session_expired",
+      "evidence_ref": "evidence/05-failure-session-timeout/replay-55938e74/failure.json"
+    },
+    "steps": [
+      {
+        "step_id": "step0_navigate",
+        "index": 0,
+        "status": "failed",
+        "observed": "Session expired. Signing back in needs a human: the agent never handles credentials.",
+        "screenshot_ref": null
+      }
+    ],
+    "interventions": []
+  }
+}

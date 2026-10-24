@@ -5,12 +5,16 @@ the saved artifact [`member.lookup_savings.json`](member.lookup_savings.json) wi
 
 Each run folder has `run.jsonl` (every event, in order), a screenshot after each step,
 `summary.json`, and on failure `failure.json` (URL, accessibility tree, expected vs. observed).
+Run 06 also has `intervention-*.json` (the request the operator received, and what they did)
+and screenshots at the moments control changed hands. Its operator is scripted: it drives the
+operator console's HTTP API exactly as the web page does.
 All text is redacted before it is written; screenshots are taken after PII is masked in the page.
 
 | Run | MockCore scenario | member_id | Shows | Status | Detail | Log |
 |---|---|---|---|---|---|---|
-| 01-discovery | `normal` | `12345` | LLM discovers the flow once | **success** | {"savings_balance": "$4,210.55"} | [01-discovery/discovery-c459fcc8/run.jsonl](01-discovery/discovery-c459fcc8/run.jsonl) |
-| 02-replay-success | `normal` | `67890` | success, with a different member than discovery used | **success** | {"savings_balance": "$15,230.10"} | [02-replay-success/replay-eafaeb49/run.jsonl](02-replay-success/replay-eafaeb49/run.jsonl) |
-| 03-business-not-found | `normal` | `00000` | business outcome: member_not_found, not a crash | **business_outcome** | member_not_found | [03-business-not-found/replay-75770374/run.jsonl](03-business-not-found/replay-75770374/run.jsonl) |
-| 04-recovered-interstitial | `interstitial` | `12345` | recoverable: dismissed a surprise System Notice | **success** | {"savings_balance": "$4,210.55"} (recovered 1 step) | [04-recovered-interstitial/replay-5272441a/run.jsonl](04-recovered-interstitial/replay-5272441a/run.jsonl) |
-| 05-failure-session-timeout | `timeout` | `12345` | failure: session expired, with a failure snapshot | **failure** | step step1_type: locator — no strategy resolved 'Member ID' on http://127.0.0.1:5001/members (tried: role, placeholder) | [05-failure-session-timeout/replay-d187f7c3/run.jsonl](05-failure-session-timeout/replay-d187f7c3/run.jsonl) |
+| 01-discovery | `normal` | `12345` | LLM discovers the flow once | **success** | {"savings_balance": "$4,210.55"} | [01-discovery/discovery-a941a2ea/run.jsonl](01-discovery/discovery-a941a2ea/run.jsonl) |
+| 02-replay-success | `normal` | `67890` | success, with a different member than discovery used | **success** | {"savings_balance": "$15,230.10"} | [02-replay-success/replay-e7c3172d/run.jsonl](02-replay-success/replay-e7c3172d/run.jsonl) |
+| 03-business-not-found | `normal` | `00000` | business outcome: member_not_found, not a crash | **business_outcome** | member_not_found | [03-business-not-found/replay-0d5e9667/run.jsonl](03-business-not-found/replay-0d5e9667/run.jsonl) |
+| 04-recovered-interstitial | `interstitial` | `12345` | recoverable: dismissed a surprise System Notice | **success** | {"savings_balance": "$4,210.55"} (recovered 1 step) | [04-recovered-interstitial/replay-99537fe5/run.jsonl](04-recovered-interstitial/replay-99537fe5/run.jsonl) |
+| 05-failure-session-timeout | `timeout` | `12345` | failure: session expired, with a failure snapshot | **failure** | step step0_navigate: hard/session_expired — Session expired. Signing back in needs a human: the agent never handles credentials. | [05-failure-session-timeout/replay-55938e74/run.jsonl](05-failure-session-timeout/replay-55938e74/run.jsonl) |
+| 06-human-handoff | `timeout` | `12345` | human handoff: operator signs in on the same session, automation resumes | **success** | {"savings_balance": "$4,210.55"} (handoff: session_expired -> resume by ops.demo, 6 human actions) | [06-human-handoff/replay-87294e6d/run.jsonl](06-human-handoff/replay-87294e6d/run.jsonl) |

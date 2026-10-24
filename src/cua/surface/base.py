@@ -108,6 +108,27 @@ class Surface(ABC):
         """Reload the current page."""
         self.navigate(self.current_url())
 
+    # ---- operator (human) control during a handoff ----
+    # Pixels and keystrokes on purpose: a human operating a desktop app has no DOM
+    # either, so the same console contract works on every surface.
+    def frame(self) -> bytes:
+        """PNG of what is on screen right now, with PII masked."""
+        raise NotImplementedError
+
+    def click_at(self, x: float, y: float) -> None:
+        raise NotImplementedError
+
+    def type_text(self, text: str) -> None:
+        """Type into whatever currently has focus."""
+        raise NotImplementedError
+
+    def press_key(self, key: str) -> None:
+        raise NotImplementedError
+
+    def focus_is_secret(self) -> bool:
+        """True when the focused field holds a secret (e.g. a password), so it is never logged."""
+        return True  # unknown -> assume secret
+
     # ---- context manager sugar ----
     def __enter__(self):
         self.start()

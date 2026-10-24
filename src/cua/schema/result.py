@@ -10,6 +10,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from .intervention import InterventionRequest
+
 
 class Status(str, Enum):
     SUCCESS = "success"                    # goal met, outputs present
@@ -43,6 +45,7 @@ class FailureDetail(BaseModel):
     expected: str
     observed: str
     error_class: str
+    code: str | None = Field(default=None, description="Named failure, e.g. 'session_expired'.")
     evidence_ref: str | None = None
 
 
@@ -60,4 +63,7 @@ class ReplayResult(BaseModel):
     business_outcome: BusinessOutcome | None = None
     failure: FailureDetail | None = None
     steps: list[StepResult] = Field(default_factory=list)
+    interventions: list[InterventionRequest] = Field(
+        default_factory=list, description="Every human handoff during this run, with what they did."
+    )
     evidence: Evidence | None = None

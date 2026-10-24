@@ -68,7 +68,9 @@ MEMBERS = {
 
 # In-memory injected scenario (test hook). Not how a real app works — a convenience
 # so we can deterministically drive exceptional states for the replay evidence.
-STATE = {"scenario": "normal"}
+# `timeout_at`: when the timeout scenario was switched on. Sessions issued before it
+# are expired; signing in again issues a fresh one — like a real session timeout.
+STATE = {"scenario": "normal", "timeout_at": 0.0}
 
 VALID_SCENARIOS = {
     "normal", "slow", "interstitial", "timeout", "validation", "permission",
@@ -152,7 +154,7 @@ def expired_page() -> str:
   <tr><td style="padding:16px;">
      <span class="warn">Your session has timed out due to inactivity.</span><br><br>
      Please sign in again to continue.<br><br>
-     <form method="get" action="/"><input type="submit" class="btn" value="Return to Sign In"></form>
+     <form method="get" action="/signin"><input type="submit" class="btn" value="Return to Sign In"></form>
   </td></tr>
 </table>"""
     return page("Session Expired", body)
@@ -164,6 +166,15 @@ def expired_page() -> str:
 PROTECTED = ("/members",)
 
 
+def _session_valid() -> bool:
+    """A session (cookie `sid` = '<random>.<issued-at>') is valid if issued after the timeout."""
+    try:
+        issued = float(request.cookies.get("sid", "").split(".", 1)[1])
+    except (IndexError, ValueError):
+        return False
+    return issued > STATE["timeout_at"]
+
+
 @app.before_request
 def _apply_scenario():
     scenario = current_scenario()
@@ -172,8 +183,8 @@ def _apply_scenario():
     if scenario == "slow" and request.path.startswith(PROTECTED):
         time.sleep(3)
 
-    # session timeout: pretend the cookie expired on protected routes
-    if scenario == "timeout" and request.path.startswith(PROTECTED):
+    # session timeout: protected routes need a session issued after the timeout began
+    if scenario == "timeout" and request.path.startswith(PROTECTED) and not _session_valid():
         g.force_expired = True
 
 
@@ -190,8 +201,41 @@ def home():
     <font size="1" color="#667">This is a synthetic training/demo environment.</font>
   </td></tr>
 </table>"""))
-    # (Re)establish a mock session on the landing page.
-    resp.set_cookie("sid", uuid.uuid4().hex, httponly=True, samesite="Lax")
+    return resp
+
+
+def signin_page(error: str = "") -> str:
+    # A password field on purpose: credentials are exactly what an agent must never
+    # handle, so an expired session is a job for a human operator.
+    warn = f'<span class="warn">{error}</span><br><br>' if error else ""
+    body = f"""
+<table class="panel" width="420" align="center" style="margin-top:60px;">
+  <tr class="hdr"><td><b>Operator Sign In</b></td></tr>
+  <tr><td style="padding:16px;">
+    {warn}
+    <form method="post" action="/signin">
+      <table>
+        <tr><td class="lbl">Operator ID</td>
+            <td><input type="text" name="operator" class="fld" size="20" placeholder="Operator ID"></td></tr>
+        <tr><td class="lbl">Password</td>
+            <td><input type="password" name="password" class="fld" size="20" placeholder="Password"></td></tr>
+        <tr><td></td><td style="padding-top:8px;"><input type="submit" class="btn" value="Sign In"></td></tr>
+      </table>
+    </form>
+  </td></tr>
+</table>"""
+    return page("Sign In", body)
+
+
+@app.route("/signin", methods=["GET", "POST"])
+def signin():
+    if request.method == "GET":
+        return signin_page()
+    # Synthetic environment: any non-empty operator id + password signs in. Never log them.
+    if not (request.form.get("operator") or "").strip() or not request.form.get("password"):
+        return signin_page("Operator ID and password are required.")
+    resp = redirect(url_for("member_search"))
+    resp.set_cookie("sid", f"{uuid.uuid4().hex}.{time.time()}", httponly=True, samesite="Lax")
     return resp
 
 
@@ -417,6 +461,8 @@ def control():
             return {"error": f"unknown scenario '{scenario}'",
                     "valid": sorted(VALID_SCENARIOS)}, 400
         STATE["scenario"] = scenario
+        if scenario == "timeout":
+            STATE["timeout_at"] = time.time()  # every session issued before now is expired
         return {"scenario": STATE["scenario"]}
     return {"scenario": STATE["scenario"], "valid": sorted(VALID_SCENARIOS)}
 
