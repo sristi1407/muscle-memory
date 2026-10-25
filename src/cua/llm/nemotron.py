@@ -1,10 +1,11 @@
 """NVIDIA Nemotron on Nebius Token Factory — the discovery driver.
 
 Token Factory is OpenAI-compatible, so we use the standard ``openai`` client with
-a different base URL. Tiers (pick per use):
-  * ULTRA     — discovery reasoning (drive an unfamiliar UI). The expensive one,
-                used ONCE per capability.
-  * LIGHTNING / NANO — cheap, fast; for per-step checks and error classification.
+a different base URL. Tiers:
+  * ULTRA — the default discovery model (drive an unfamiliar UI). The expensive one,
+            but used ONCE per capability; replay never calls a model.
+  * SUPER / NANO / LIGHTNING — cheaper tiers, selectable for discovery
+            (``muscle-memory discover --model super|nano``).
 """
 import json
 import os

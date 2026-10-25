@@ -1,3 +1,6 @@
+# Prefer `pip install -e .` (pyproject.toml is the source of truth; it also installs
+# the `muscle-memory` command). This file mirrors the same dependencies.
+
 # Target app (MockCore legacy bank surface)
 flask>=3.0
 
@@ -7,8 +10,12 @@ playwright>=1.44          # after install: `python -m playwright install chromiu
 # Typed artifact + result contracts
 pydantic>=2.7
 
-# LLM (discovery loop). Optional at runtime: a mock boundary lets you run without a key.
-anthropic>=0.34
+# LLM (discovery): NVIDIA Nemotron via Nebius Token Factory's OpenAI-compatible API.
+# Optional at runtime: a mock boundary lets you run without a key.
+openai>=1.40
 
 # Config
 python-dotenv>=1.0
+
+# Tests
+pytest>=8

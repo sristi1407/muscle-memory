@@ -1,233 +1,245 @@
-# Computer-Use Automation System
+# Muscle Memory
 
-> Give an AI agent *hands* inside legacy bank software that has no API — safely, and
-> without paying an LLM to re-reason about the UI on every run.
+**Discover once with an LLM. Replay free, forever.** Hands for AI agents inside legacy
+banking software that has no API.
 
-An LLM **discovers** how to accomplish a goal by driving a real application UI once.
-That successful run is **compiled** into a typed, versioned *Capability* artifact. In
-production, an AI agent invokes that capability and we **replay** it deterministically
-— no model in the decision loop — with a real error taxonomy, safety guardrails, and a
-human-handoff path for when replay gets stuck.
+Banks and credit unions run back-office apps whose only way in is the screen a human
+operator clicks through. Muscle Memory lets an LLM (NVIDIA Nemotron, on Nebius Token
+Factory) work out how to do a task in such an app **once**, compiles that run into a
+typed, versioned **capability**, and then replays the capability **deterministically,
+with no model in the loop**. Replay knows the difference between "done", "a legitimate
+business answer" (*no such member*) and "something broke", and when it genuinely gets
+stuck it hands the *same live browser session* to a human operator and resumes after.
 
 ```
-  discover (LLM drives the UI, guardrailed)
-      └──> compile (successful path -> typed, versioned Capability artifact)
-              └──> replay (deterministic, no LLM, with error taxonomy + checkpoints)
+ discover ── Nemotron drives the UI through its accessibility tree (once per capability)
+    │
+ compile ─── the successful path becomes a typed, versioned capability (JSON)
+    │
+ replay ──── no model: resolve → act → verify → classify:
+               success · business_outcome · failure   (+ human handoff when stuck)
 ```
 
-This repo implements a small-but-real end-to-end slice of that idea against **one
-concrete surface** (a web app), with the core abstractions designed so they don't paint
-us into a corner for legacy-web / desktop surfaces or multi-tenant reuse. The design
-rationale lives in [`REPORT.md`](REPORT.md).
+The design rationale is in [`REPORT.md`](REPORT.md); proof of every outcome is in
+[`evidence/`](evidence/README.md).
 
 ---
 
-## Why this shape
+## Quick start
 
-The target environment is back-office banking apps: **stable UIs but real runtime
-errors**, **heterogeneous legacy surfaces** (no clean DOM, no test IDs, sometimes
-desktop), and **multi-tenant at scale** (many institutions running the same vendor
-product configured differently). That drives three commitments:
-
-1. **Accessibility-tree-first perception.** We lead with roles + accessible names, not
-   CSS selectors, because that's more stable *and* generalizes to desktop. Screenshots
-   and coordinates are a fallback, not the primary contract.
-2. **The artifact is a *capability*, not a script.** It has a typed contract (inputs,
-   outputs, success condition), resilient locators with ordered fallbacks, and an
-   explicit per-step error policy — so both a human reviewer and a calling agent know
-   what it does, needs, and returns.
-3. **Business outcome ≠ failure.** "No such member" is a legitimate typed result, not a
-   crash. The replay result contract separates *success* / *business outcome* /
-   *hard failure* deliberately.
-
----
-
-## Architecture
-
-```
-                          ┌─────────────────── POLICY ENGINE ───────────────────┐
-                          │  allowlist (domains/routes/actions) · risk class ·   │
-                          │  redaction (PII/secrets → typed refs)                │
-                          └──────────────┬───────────────────────┬───────────────┘
-                                         │ (gates every action)  │
-   goal + target + params                ▼                       ▼
-        │                        ┌───────────────┐        ┌──────────────┐
-        ▼                        │  AGENT LOOP   │        │ REPLAY ENGINE│  ◄── artifact + params
-  ┌───────────┐   observe        │ (discovery)   │        │ (production) │
-  │  SURFACE  │◄───────────────► │ observe→decide│        │ resolve→verify│
-  │  DRIVER   │   act            │ →act (LLM     │        │ →act→checkpoint│
-  │(Playwright│                  │  tool calls)  │        │ →classify err │
-  │ web: AX   │                  └──────┬────────┘        └──────┬───────┘
-  │ tree +    │                         │ success trace          │ ReplayResult
-  │ screenshot│                         ▼                        ▼
-  │ + coords) │                  ┌──────────────┐         success | business_outcome | failure
-  └─────┬─────┘                  │  ARTIFACT    │
-        │                        │  COMPILER    │──► Capability Registry (+ optional catalog API)
-        │                        └──────────────┘
-        ▼
-  SESSION / CONTROL MANAGER  ──(owns live browser context + control token: automation|human)──►  ESCALATION
-        │                                                                                         MANAGER
-        └──────────────────────────► EVIDENCE STORE (JSONL logs · per-step screenshots ·           +
-                                       failure snapshots)                              minimal OPERATOR CONSOLE
-```
-
-**Component responsibilities**
-
-| Component | Responsibility |
-|---|---|
-| **Surface driver** | Perceive (accessibility tree + screenshot + URL) and act (click/type/navigate/read) on a live surface; resolve locators. The one place that knows *how* to touch a surface. |
-| **Agent loop** (discovery) | LLM-driven observe→decide→act via a typed tool schema, guardrailed, until success or a stop condition. |
-| **Artifact compiler** | Distill the *successful path* out of the messy transcript into a typed, parameterized, versioned Capability artifact. |
-| **Replay engine** (production) | Execute an artifact deterministically with input params; resolve + verify locators; assert checkpoints; classify runtime conditions; return a structured result. |
-| **Policy engine** | Enforce the allowlist on every action; classify risky/irreversible actions; redact secrets/PII from artifacts, logs, and screenshots. |
-| **Session / control manager** | Own the live browser session and a **control token** (`automation \| human`) that says who may act. |
-| **Escalation + operator console** | Detect "stuck," route an intervention request with context, let a human drive the *same* live session, then hand control back. |
-| **Evidence store** | Structured JSONL logs + per-step screenshots + a richer snapshot on failure. |
-
-### The two load-bearing contracts
-
-**Capability artifact** — a typed, versioned capability (not a step list):
-
-- `metadata` — id, semver, app / vendor-product / tenant, `surface: web | web-legacy | desktop`
-- `contract` — typed **inputs** (e.g. `memberId`, with a `sensitive` flag), typed **outputs**
-  (e.g. `savingsBalance`), and a **success condition** checkpoint
-- `steps[]` — each = `action` + a resilient **Target** (ordered locator strategies + a
-  post-resolution self-check) + `waits` + per-step **error rules** + `risk: safe | risky`
-- `policy` — allowlist + which steps require approval
-- `provenance` — discovery run id, model, redacted transcript reference
-
-**Replay result** — the production contract:
-
-- `success` → typed outputs
-- `business_outcome` → a legitimate answer the caller needs (e.g. `member_not_found`)
-- `failure` → step + what was expected + what was observed + evidence reference
-
----
-
-## Repo layout
-
-```
-interface-cua/
-├── README.md                    this file
-├── REPORT.md                    design write-up (exact headings the brief asks for)
-├── requirements.txt
-├── targets/mockcore/app.py      the hostile legacy bank app we automate  [BUILT]
-├── src/cua/
-│   ├── surface/                 perceive/act abstraction + Playwright web driver
-│   ├── schema/                  ★ Capability artifact + ReplayResult models
-│   ├── agent/                   discovery loop (observe→decide→act)
-│   ├── compiler/                trace → artifact
-│   ├── replay/                  ★ deterministic engine + error taxonomy
-│   ├── policy/                  allowlist + risk + redaction
-│   ├── escalation/              session control token + operator console
-│   ├── evidence/                JSONL logs + screenshots
-│   └── llm/                     Anthropic client + mock boundary
-├── cli.py                       run-agent / replay / serve-console
-└── evidence/                    saved discovery + replay + error runs
-```
-
----
-
-## Setup
+Python 3.10+.
 
 ```bash
-git clone <this-repo> && cd interface-cua
+git clone https://github.com/sristi1407/muscle-memory.git && cd muscle-memory
 python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+pip install -e .
 python -m playwright install chromium
 ```
 
-**LLM key (optional).** Discovery uses Claude. To run discovery live:
+This installs the `muscle-memory` command (`python -m cua` does the same thing).
+
+**Nemotron key (optional).** Live discovery uses NVIDIA Nemotron on Nebius Token Factory:
 
 ```bash
-export ANTHROPIC_API_KEY=sk-...
+echo "NEBIUS_API_KEY=your-key" > .env
 ```
 
-If no key is set, discovery runs against a **mock LLM boundary** (a recorded decision
-sequence) so the full pipeline — discovery → artifact → replay → error handling →
-escalation — is reproducible with **no live services**. Replay never needs a key.
+Without a key everything still runs — see [Running without live services](#running-without-live-services).
 
----
-
-## Running
-
-### 1. Start the target app
+**Start the target app** in its own terminal and leave it running:
 
 ```bash
 python targets/mockcore/app.py
 ```
 
-Opens the MockCore legacy bank console at `http://127.0.0.1:5001`.
-Members: `12345` (Active), `67890` (Active), `22222` (Restricted). Unknown IDs → a
-*not-found* business outcome. All data is synthetic — no real credentials, no real PII.
+MockCore (`http://127.0.0.1:5001`) is a deliberately legacy back-office banking app:
+server-rendered, table layouts, no test IDs, a fake SSN on screen, and switchable
+runtime conditions. All data is synthetic. Members: `12345`, `67890`, `22222`.
 
-You can inject runtime conditions to exercise the error taxonomy:
+---
+
+## Demo path
+
+Run these from the repo root, with MockCore running.
+
+**1. Discover a capability from a goal** (Nemotron drives the app, once):
 
 ```bash
-# persist a scenario for subsequent requests
-curl -s -X POST http://127.0.0.1:5001/__control \
-     -H 'content-type: application/json' \
-     -d '{"scenario":"interstitial"}'
-# scenarios: normal | slow | interstitial | timeout | validation | permission
+muscle-memory discover \
+  --goal "Look up member 12345 and read their savings balance." \
+  --start http://127.0.0.1:5001/members \
+  --input member_id=12345 \
+  --id member.lookup_savings
 ```
 
-### 2. Demo path (discovery → artifact → replay)
+It prints the evidence log and saves `capabilities/member.lookup_savings.json`: typed
+input `member_id`, typed output `savings_balance`, four steps with resilient locators,
+error rules, and an allowlist. Try your own goal, too — e.g. *"Look up member 67890
+and read their checking balance."* with `--input member_id=67890 --id member.lookup_checking`.
 
-> Status: the mock app is runnable today; the commands below are the **intended demo
-> path** and light up as the slices land (see Build status). They are listed here so the
-> shape of the deliverable is clear.
+**2. Replay it for a different member** — no model involved:
 
 ```bash
-# discover: LLM drives MockCore to complete the goal, emits a Capability artifact
-python cli.py run-agent \
-  --goal "look up member 12345 and read their current savings balance" \
-  --target http://127.0.0.1:5001/members \
-  --out artifacts/member_lookup.json
+muscle-memory replay capabilities/member.lookup_savings.json --param member_id=67890
+```
 
-# replay: deterministic, no LLM, with a different input parameter
-python cli.py replay artifacts/member_lookup.json --param memberId=67890
+```
+SUCCESS  member.lookup_savings v1.0.0  run 28a52a1a
+  outputs: {"savings_balance": "$15,230.10"}
+```
 
-# replay into a business outcome (unknown member -> member_not_found, not a crash)
-python cli.py replay artifacts/member_lookup.json --param memberId=00000
+**3. A business outcome, not a crash:**
 
-# escalation demo: run a risky flow, force a stuck state, take over the live session
-python cli.py serve-console        # minimal operator console
-python cli.py run-agent --goal "open a sub-account for member 22222 ..." ...
+```bash
+muscle-memory replay capabilities/member.lookup_savings.json --param member_id=00000
+```
+
+```
+BUSINESS_OUTCOME  member.lookup_savings v1.0.0  run b2ba6df4
+  business outcome: member_not_found — No member exists for the given ID.
+```
+
+Add `--json` to see the full result contract a calling agent receives. Exit codes:
+`0` success, `2` business outcome, `1` failure.
+
+**4. Runtime conditions.** Switch MockCore's injected condition, replay, switch back:
+
+```bash
+muscle-memory scenario interstitial    # a surprise "System Notice" dialog -> dismissed, replay succeeds
+muscle-memory scenario timeout         # session expired -> named failure: session_expired
+muscle-memory scenario normal
+```
+
+**5. Human handoff.** Expire the session, then replay with the operator console attached:
+
+```bash
+muscle-memory scenario timeout
+muscle-memory replay capabilities/member.lookup_savings.json --param member_id=12345 --console
+```
+
+Open **http://127.0.0.1:5050**. Replay has paused and is waiting for you. Click **Take
+control**, click **Return to Sign In** *on the live page picture*, click the Operator ID
+field in the picture and type any ID in the panel, press **Tab**, type any password
+(tick *hide what I type*), press **Enter**, then **Resume automation**. Replay retries
+the blocked step and finishes; every action you took is recorded, the password as
+`[REDACTED:secret]`. Run `muscle-memory scenario normal` afterwards.
+
+To see the **risky-step approval** gate instead (replay pauses before an irreversible
+click and asks a human to approve or deny):
+
+```bash
+APPROVAL=1 python scripts/escalation_demo.py
+```
+
+**6. Regenerate the evidence folder** (discovery + five replays, including the handoff):
+
+```bash
+MOCK=0 python scripts/record_evidence.py     # live Nemotron discovery
+python scripts/record_evidence.py            # recorded decisions, no key
+```
+
+**7. Tests** (no browser or key needed):
+
+```bash
+pytest -q
 ```
 
 ---
 
-## Build status
+## Running without live services
 
-Vertical slices — each leaves something working end-to-end.
+| Part | Needs a model? | Without a key |
+|---|---|---|
+| Discovery | Yes — Nemotron Ultra by default | Uses a recorded decision sequence for the sample goal (`--mock`, or automatically when `NEBIUS_API_KEY` is unset) |
+| Compile | No | — |
+| Replay, error handling, handoff | **Never** | Works exactly the same |
+| Tests | No | `pytest -q` |
 
-- [x] **P0 — Foundations & target.** Hostile legacy mock bank app with injectable
-      runtime conditions; repo skeleton; deps.
-- [ ] **P1 — Discovery.** Agent loop completes "look up member → read savings balance,"
-      guardrailed, evidence captured.
-- [ ] **P2 — Compile.** Successful run → typed, parameterized, versioned artifact.
-- [ ] **P3 — Replay.** Deterministic replay with input params, checkpoint verify, typed
-      outputs.
-- [ ] **P4 — Error taxonomy.** Inject not-found / validation / interstitial / timeout →
-      replay classifies business vs. recoverable vs. hard, and reports.
-- [ ] **P5 — Escalation & handoff.** Risky sub-account flow → stuck → operator takes the
-      live session → resume.
-- [ ] **P6 — Safety hardening.** Allowlist enforcement + redaction proof + evidence polish.
-- [ ] **P7 — Write-up & evidence.** `REPORT.md`, saved `/evidence/`, and at most one
-      stretch goal.
+Everything runs locally against MockCore; nothing touches a real bank, real credentials,
+or real PII.
 
 ---
 
-## Safety & data handling
+## What's in the repo
 
-- **Allowlist.** Every action (discovery *and* replay) passes through a policy gate:
-  permitted domains/routes and permitted action types. Actions outside it are blocked.
-- **Risky actions.** Irreversible steps (submit that creates/moves something) are flagged
-  and handled conservatively — gated on confirmation/approval rather than run blindly.
-- **Redaction.** Secrets and regulated data (the synthetic SSN on the detail screen,
-  credentials, tokens) are never persisted into artifacts or logs. Sensitive inputs are
-  stored as typed references, never literals; screenshots mask sensitive fields.
+```
+targets/mockcore/app.py      the legacy bank app we automate (Flask)
+src/cua/
+  surface/                   how we see and act on an app: accessibility tree, screenshots, pixels+keys
+  agent/                     discovery: observe → LLM decides one action → act → record
+  llm/                       provider-agnostic model boundary: Nemotron driver + mock
+  compiler/                  successful run → typed capability; error-rule packs; registry
+  schema/                    the contracts: capability (cua.v1), replay result, intervention request
+  replay/                    deterministic engine: locators, checkpoints, error taxonomy, handoff
+  policy/                    allowlist gate + PII/secret redaction
+  escalation/                control token + operator console (human takeover of the live session)
+  evidence/                  per-run JSONL logs, screenshots, failure snapshots
+  cli.py                     the muscle-memory command
+scripts/                     record_evidence.py, escalation_demo.py, and per-phase smoke scripts
+tests/                       unit tests (escalation, evidence, policy, redaction)
+evidence/                    a real Nemotron discovery run and six labelled replays
+capabilities/                saved capabilities
+```
 
-This is a demo against synthetic data. It is **not** production-hardened — see the *Cuts*
-section of [`REPORT.md`](REPORT.md) for the boundary between what's real here and what a
-production system would add.
+---
+
+## Evidence
+
+[`evidence/README.md`](evidence/README.md) indexes one Nemotron discovery run and the
+replays of the capability it produced:
+
+| Run | Result |
+|---|---|
+| 01 Discovery (Nemotron Ultra) | success — read $4,210.55 |
+| 02 Replay, different member | success — $15,230.10 |
+| 03 Unknown member | business outcome `member_not_found` |
+| 04 Surprise maintenance dialog | dismissed automatically, then success |
+| 05 Session expired, nobody on call | named failure `session_expired`, with a failure snapshot |
+| 06 Session expired, operator on call | human signs in on the same session, automation resumes → success |
+
+Each run has a `run.jsonl` (every observation, decision, action and reason, in order),
+a screenshot after each step, and a failure snapshot or intervention record where
+relevant. A scan confirms the synthetic SSN appears in none of it.
+
+---
+
+## Built with NVIDIA Nemotron on Nebius Token Factory
+
+- **Where Nemotron is used:** the discovery agent. At each step it receives the page's
+  accessibility tree and the goal, and answers with exactly one structured `act()` tool
+  call (type, click, select, read, or finish) plus a short reason. **Nemotron 3 Ultra**
+  (`nvidia/Nemotron-3-Ultra-550b-a55b`) is the default, because driving an unfamiliar
+  legacy UI is the hard reasoning step; `--model super` and `--model nano` select cheaper
+  tiers. Code: [`src/cua/llm/nemotron.py`](src/cua/llm/nemotron.py).
+- **How Token Factory fit in:** its API is OpenAI-compatible, so the driver is the
+  standard `openai` client with Token Factory's base URL — the provider sits behind a
+  small interface ([`src/cua/llm/base.py`](src/cua/llm/base.py)) and switching model
+  tiers is a model-id change.
+- **Why this stretches credits:** the model is called once per decision during
+  discovery — four calls to learn the member-lookup flow — and **zero** times after
+  that. Every replay, in production, is free and identical. In our runs Ultra learned
+  both the sample goal and an unseen one (*read member 67890's checking balance*) on
+  the first attempt; the second capability then replayed for another member with no
+  model calls.
+- **Other Nebius services:** none — the whole system runs locally.
+
+### Feedback
+
+- The OpenAI-compatible endpoint made integration nearly free: no new SDK, and model
+  tiers are interchangeable by id.
+- Nemotron 3 Ultra followed the single-tool-call contract reliably at temperature 0 and
+  used the exact accessible names from the observation, which is what makes the
+  recorded steps replayable.
+
+---
+
+## Safety
+
+Every navigation is checked against the capability's allowlist; risky steps never run
+unattended (a human approves them, or the run fails closed); PII is redacted at the
+source, before the model, the logs or a screenshot can see it; operator-typed secrets
+are never recorded. Details and limits: [`REPORT.md`](REPORT.md).
+
+## License
+
+[MIT](LICENSE)
